@@ -133,6 +133,7 @@ public class HexSender
         if(data.length<offset+size)size=data.length-offset;
         //System.out.println("->"+toBin2Hex(data,offset,size));
         out.write(data, offset, size);
+        out.flush();
     }
     
     public boolean wait_for(InputStream in, byte b,int timeout) throws IOException, InterruptedException
@@ -277,6 +278,7 @@ public class HexSender
                 System.out.println("Connection Opened:");
                 out.write((byte)0);             //init
                 out.write(ByteBuffer.allocate(4).putInt(speed).array()); 
+                out.flush();
                 Thread.sleep(400);
                 if(!obj.program(data,in,out))System.out.println("--Error--");
                 socket.close();
