@@ -3,6 +3,8 @@ package io.cloudino.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.HttpConstraint;
+import javax.servlet.annotation.ServletSecurity;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -13,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
  * @author serch
  */
 @WebServlet(name = "BaseData", urlPatterns = {"/base"})
+@ServletSecurity(@HttpConstraint(rolesAllowed = {"Admin","User"}))
 public class BaseData extends HttpServlet {
 
     /**
@@ -36,6 +39,12 @@ public class BaseData extends HttpServlet {
             out.println("</head>");
             out.println("<body>");
             out.println("<h1>Servlet BaseData at " + request.getContextPath() + "</h1>");
+            out.println("<h1>AuthType " + request.getAuthType() + "</h1>");
+            out.println("<h1>Principal " + request.getUserPrincipal() + "</h1>");
+            out.println("<h1>RemoteUser " + request.getRemoteUser() + "</h1>");
+            out.println("<h1>is Admin " + request.isUserInRole("Admin") + "</h1>");
+            out.println("<h1>is User " + request.isUserInRole("User") + "</h1>");
+            out.println("<h1>is Device " + request.isUserInRole("Device") + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
