@@ -1,15 +1,28 @@
 //******* DataStores ***************
+
+eng.config={
+    devicePort:9595
+};
+
+//******* DataStores ***************
 eng.dataStores["mongodb"]={
     host:"localhost",
     port:27017,
     class: "org.semanticwb.datamanager.datastore.DataStoreMongo",
-    envhost:"MONGO_PORT_27017_TCP_ADDR",
-    envport:"MONGO_PORT_27017_TCP_PORT",
+    //envhost:"MONGO_PORT_27017_TCP_ADDR",
+    //envport:"MONGO_PORT_27017_TCP_PORT",
 };
 
 //******* DataSorices ************
 eng.dataSources["Device"]={
     scls: "Device",
+    modelid: "Cloudino",
+    dataStore: "mongodb",    
+};
+
+//******* DataSorices ************
+eng.dataSources["Datasource"]={
+    scls: "Datasource",
     modelid: "Cloudino",
     dataStore: "mongodb",    
 };

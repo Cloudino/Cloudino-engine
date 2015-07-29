@@ -63,8 +63,19 @@ public class Compiler
         }
         compile(path, device, build, libmgr);
     }
-    
+
     public void compile(String path, String device, String build, LibraryMgr libs) throws IOException, InterruptedException
+    {
+        File fino=new File(path);
+        compileCode(readFile(fino), path, device, build, libs);
+    }
+    
+    public void compileCode(String code, String path, String device, String build) throws IOException, InterruptedException
+    {
+        compileCode(code, path, device, build, new LibraryMgr(apath));
+    }    
+    
+    public void compileCode(String code, String path, String device, String build, LibraryMgr libs) throws IOException, InterruptedException
     {
         Device d=devices.get(device);
         File fino=new File(path);
@@ -72,7 +83,7 @@ public class Compiler
         File fbuild=new File(build);
         fbuild.mkdirs();
         
-        String ino_txt=convertIno2Cpp(fino, build+"/"+fname+".cpp");
+        String ino_txt=convertIno2Cpp(code, fino, build+"/"+fname+".cpp");
         
         /************ define libraries ************************/
         ArrayList<File> baseLibs=new ArrayList();
@@ -132,10 +143,10 @@ public class Compiler
     {
         try
         {
-            Compiler com=new Compiler("/Applications/Arduino1.6.4.app/Contents/Java");
+            Compiler com=new Compiler("/Applications/Arduino.app/Contents/Java");
             //com.compile("/Applications/Arduino1.6.4.app/Contents/Java/examples/01.Basics/Blink/Blink.ino","pro.menu.cpu.8MHzatmega328","/Users/javiersolis/Documents/Arduino/build");
             //com.compile("/Applications/Arduino1.6.4.app/Contents/Java/libraries/Servo/examples/Knob/Knob.ino","uno","/Users/javiersolis/Documents/Arduino/build");
-            com.compile("/opt/cloudino/bor/src/sketch.ino","uno");
+            com.compile("/opt/cloudino/bor/src/Blink.ino","uno");
         }catch(Exception e)
         {
             e.printStackTrace();
@@ -169,7 +180,7 @@ public class Compiler
         });
     }
     
-    private String convertIno2Cpp(File fino,String file) throws IOException
+    private String convertIno2Cpp(String code, File fino,String file) throws IOException
     {
         StringBuilder ret=new StringBuilder();
         FileOutputStream out=new FileOutputStream(file);
@@ -179,16 +190,28 @@ public class Compiler
             "void loop();\n" +
             "#line 1 \""+fino.getName()+"\"\n"
             ).getBytes());  
+        out.write(code.getBytes("utf8"));
+        ret.append(code);
+        return ret.toString();        
+    }    
+    
+    private String convertIno2Cpp(File fino, String file) throws IOException
+    {        
+        return convertIno2Cpp(readFile(fino), fino, file);
+    }   
+    
+    private String readFile(File fino)throws IOException
+    {
+        StringBuilder ret=new StringBuilder();
         FileInputStream in=new FileInputStream(fino);
         byte[] buffer = new byte[1024];
         int len = in.read(buffer);
         while (len != -1) {
-            out.write(buffer, 0, len);
             ret.append(new String(buffer,0,len));
             len = in.read(buffer);
         }
         return ret.toString();
-    }    
+    }
     
     private int exec(String exec)throws IOException, InterruptedException
     {

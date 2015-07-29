@@ -6,6 +6,7 @@
 
 package io.cloudino.engine;
 
+import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -14,7 +15,26 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class DeviceMgr 
 {
-    ConcurrentHashMap<String, Device> devices=new ConcurrentHashMap();
+    private ConcurrentHashMap<String, Device> devices=new ConcurrentHashMap();
+    private static DeviceMgr instance=null;
+
+    private DeviceMgr() {
+    }
+    
+    public static DeviceMgr getInstance()
+    {
+        if(instance==null)
+        {
+            synchronized(DeviceMgr.class)
+            {
+                if(instance==null)
+                {
+                    instance=new DeviceMgr();
+                }
+            }
+        }
+        return instance;
+    }
     
     public Device getDevice(String id)
     {
@@ -36,6 +56,11 @@ public class DeviceMgr
     public void freeDevice(String id)
     {
         devices.remove(id);
+    }
+    
+    public Iterator<Device>listDevices()
+    {
+        return devices.values().iterator();
     }
     
 }

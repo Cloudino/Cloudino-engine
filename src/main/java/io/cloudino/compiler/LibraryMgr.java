@@ -61,8 +61,8 @@ public class LibraryMgr extends ArrayList<Library>
     
     void addLibsFromIno(String ino)
     {
-        Pattern include1 = Pattern.compile("\\#include <(.*?)\\>");
-        Pattern include2 = Pattern.compile("\\#include \"(.*?)\\\"");
+        Pattern include1 = Pattern.compile("\\#include ?<(.*?)\\>");
+        Pattern include2 = Pattern.compile("\\#include ?\"(.*?)\\\"");
         Matcher m = include1.matcher(ino);
         while (m.find()) {
             String s = m.group(1);
