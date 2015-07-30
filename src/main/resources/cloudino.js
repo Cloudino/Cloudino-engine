@@ -14,6 +14,33 @@ eng.dataStores["mongodb"]={
 };
 
 //******* DataSorices ************
+eng.dataSources["User"]={
+    scls: "User",
+    modelid: "Cloudino",
+    dataStore: "mongodb",   
+    fields:[
+        {name:"fullname",title:"Nombre",type:"string"},
+        {name:"username",title:"Usuario",type:"string"},
+        {name:"password",title:"Contraseña",type:"password"},
+        {name:"email",title:"Correo electrónico",type:"string"},
+    ],
+};
+
+/******* DataProcessors ************/
+eng.dataProcessors["UserProcessor"]={
+    dataSources: ["User"],
+    actions:["fetch","add","update"],
+    request: function(request, dataSource, action)
+    {
+        if(request.data.password)
+        {
+            request.data.password=this.encodeSHA(request.data.password);
+        }
+        return request;
+    }          
+};
+
+//******* DataSorices ************
 eng.dataSources["Device"]={
     scls: "Device",
     modelid: "Cloudino",

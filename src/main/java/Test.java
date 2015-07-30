@@ -19,7 +19,7 @@ public class Test {
     {
         DataMgr.createInstance(null);
         
-        SWBScriptEngine engine=DataMgr.getScriptEngine("/cloudino.js");
+        SWBScriptEngine engine=DataMgr.getUserScriptEngine("/cloudino.js",null);
         SWBDataSource ds=engine.getDataSource("Device");        
         ds.addObj((DataObject)DataObject.parseJSON("{\"hola\":\"mundo\"}"));
         engine.close();
