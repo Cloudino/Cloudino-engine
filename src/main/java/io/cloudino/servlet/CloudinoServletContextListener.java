@@ -6,12 +6,14 @@
 package io.cloudino.servlet;
 
 import io.cloudino.server.DeviceServer;
+import io.cloudino.servlet.router.Router;
 import java.util.logging.Logger;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 import org.semanticwb.datamanager.DataMgr;
 import org.semanticwb.datamanager.SWBScriptEngine;
+import org.semanticwb.datamanager.script.ScriptObject;
 
 @WebListener
 public class CloudinoServletContextListener implements ServletContextListener {
@@ -22,14 +24,17 @@ public class CloudinoServletContextListener implements ServletContextListener {
         log.info("Starting Cloudino Portal");
         System.out.println("aplicacion web arrancada");
         DataMgr.createInstance(sce.getServletContext().getRealPath("/"));
-        log.info("Cloudino Started");
+        log.info("Cloudino DataMgr Started");
         
         SWBScriptEngine engine=DataMgr.getUserScriptEngine("/cloudino.js",null);
-        
+        log.info("Cloudino SWBScriptEngine Started");
         DeviceServer server = new DeviceServer();
         server.setPort(engine.getScriptObject().get("config").getInt("devicePort"));
-        server.start();        
-        
+        server.start();   
+        log.info("Configuring Router");
+        ScriptObject ros = engine.getScriptObject().get("routes");
+        Router.initRouter(ros);
+        log.info("Router configured");
 //        SWBDataSource ds=engine.getDataSource("Device");
 //        try
 //        {

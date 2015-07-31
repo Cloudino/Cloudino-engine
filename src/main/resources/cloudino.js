@@ -54,6 +54,14 @@ eng.dataSources["Datasource"]={
     dataStore: "mongodb",    
 };
 
+eng.routes={
+    loginFallback: "login",
+    routeList:[
+        { routePath: "login", routeHandler: "io.cloudino.servlet.router.LoginHandler", isRestricted: "false", isTree: "false", template: "login" },
+        { routePath: "register", routeHandler: "io.cloudino.servlet.router.RegisterHandler", isRestricted: "false", isTree: "false", template: "register" },
+        { routePath: "panel", routeHandler: "io.cloudino.servlet.router.PanelHandler", isRestricted: "true", isTree: "true", template: "panel" },
+    ],
+};
 
 /******* DataExtractors ************
 eng.dataExtractors["SWBSocial1"]={

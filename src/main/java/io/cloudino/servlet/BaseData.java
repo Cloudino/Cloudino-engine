@@ -40,7 +40,7 @@ public class BaseData extends HttpServlet {
             out.println("<body>");
             out.println("<h1>Servlet BaseData at " + request.getContextPath() + "</h1>");
             out.println("<h1>AuthType " + request.getAuthType() + "</h1>");
-            out.println("<h1>Principal " + request.getUserPrincipal() + "</h1>");
+            //out.println("<h1>Principal " + request.getUserPrincipal() + "</h1>");
             out.println("<h1>RemoteUser " + request.getRemoteUser() + "</h1>");
             out.println("<h1>is Admin " + request.isUserInRole("Admin") + "</h1>");
             out.println("<h1>is User " + request.isUserInRole("User") + "</h1>");
