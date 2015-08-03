@@ -62,6 +62,7 @@ eng.routes={
         { routePath: "panel", routeHandler: "io.cloudino.servlet.router.PanelHandler", isRestricted: "true", template: "panel" },
         { routePath: "", routeHandler: "io.cloudino.servlet.router.ROOTHandler", isRestricted: "false", template: "index"},
         { routePath: "work", isRestricted: "true"},
+        { routePath: "panel/device", forwardTo: "/work/device.jsp"},
     ],
 };
 
