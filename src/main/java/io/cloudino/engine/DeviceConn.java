@@ -171,6 +171,14 @@ public class DeviceConn
             e.printStackTrace();
         }
     }
+
+    protected InputStream getInputStream() {
+        return inputStream;
+    }
+
+    protected OutputStream getOutputStream() {
+        return outputStream;
+    }
 }
 
 class Command

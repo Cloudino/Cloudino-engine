@@ -8,6 +8,10 @@ package io.cloudino.engine;
 
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
+import org.semanticwb.datamanager.DataMgr;
+import org.semanticwb.datamanager.DataObject;
+import org.semanticwb.datamanager.SWBDataSource;
+import org.semanticwb.datamanager.SWBScriptEngine;
 
 /**
  *
@@ -45,8 +49,20 @@ public class DeviceMgr
             {
                 if(dev==null)
                 {
-                    dev=new Device(id,this);
-                    devices.put(id, dev);
+                    try
+                    {
+                        //TODO: Validar si aqui habra seguridad
+                        SWBScriptEngine engine=DataMgr.getUserScriptEngine("/cloudino.js",null);
+                        SWBDataSource ds=engine.getDataSource("Device");   
+                        DataObject obj=ds.fetchObjById("_suri:Cloudino:Device:"+id);
+                        engine.close();
+                        if(obj==null)obj=new DataObject();
+                        dev=new Device(id,obj,this);
+                        devices.put(id, dev);
+                    }catch(Exception e)
+                    {
+                        e.printStackTrace();
+                    }
                 }
             }
         }

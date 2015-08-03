@@ -24,7 +24,10 @@ public class HexSender
 {
     int MAX_TIMEOUT=10000;
     
-    class Data{
+    /**
+     * Hex Data Class
+     */
+    public class Data{
         public int addr;
         public byte bin[];        
         Data(int addr, byte bin[])
@@ -87,7 +90,7 @@ public class HexSender
         return new Data(address,data);
     }
     
-    Data[] readHex(InputStream in) throws IOException
+    public Data[] readHex(InputStream in) throws IOException
     {
         ArrayList<Data> arr=new ArrayList<Data>();
         BufferedReader reader=new BufferedReader(new InputStreamReader(in));

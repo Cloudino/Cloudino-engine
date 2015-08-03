@@ -1,10 +1,10 @@
 package io.cloudino.servlet.router;
 
 import com.github.mustachejava.Mustache;
-import com.sun.istack.internal.logging.Logger;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -21,7 +21,7 @@ import org.semanticwb.datamanager.SWBScriptEngine;
 public class LoginHandler implements RouteHandler {
 
     private Mustache mustache;
-    private static final Logger logger = Logger.getLogger(LoginHandler.class);
+    private static final Logger logger = Logger.getLogger(LoginHandler.class.getName());
     private static final SWBScriptEngine engine = DataMgr.getUserScriptEngine("/cloudino.js", null);
     private static final SWBDataSource ds = engine.getDataSource("User");
 

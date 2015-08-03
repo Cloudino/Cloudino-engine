@@ -6,9 +6,15 @@
 
 package io.cloudino.engine;
 
+import io.cloudino.utils.HexSender;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import org.semanticwb.datamanager.DataObject;
 
 /**
  *
@@ -20,11 +26,13 @@ public class Device
     DeviceMgr mgr=null;
     private String id;
     DeviceConn con=null;
+    DataObject data=null;
 
-    public Device(String id, DeviceMgr mgr) 
+    public Device(String id, DataObject data, DeviceMgr mgr) 
     {
         this.id=id;
         this.mgr=mgr;
+        this.data=data;
     } 
 
     public String getId() {
@@ -134,4 +142,42 @@ public class Device
         free();
     }
     
+    public DataObject getData()
+    {
+        return data;
+    }
+    
+    public boolean sendHex(InputStream hex, PrintWriter sout)
+    {
+        boolean ret=false;
+        if(isConnected())
+        {
+            con.post("$CDINOUPDT", id);
+            
+            sout.println("Cloudino remote programmer 2015 (v0.1)");
+            HexSender obj=new HexSender();
+            try
+            {
+                HexSender.Data[] data=obj.readHex(hex);
+                Integer speed=Integer.parseInt("57600");
+                sout.println("Connection Opened:");
+                InputStream in=con.getInputStream();
+                OutputStream out=con.getOutputStream();
+                out.write((byte)0);             //init
+                out.write(ByteBuffer.allocate(4).putInt(speed).array()); 
+                out.flush();
+                Thread.sleep(400);
+                if(!obj.program(data,in,out))System.out.println("--Error--");
+                con.close();
+            }catch(Exception e)
+            {
+                e.printStackTrace();
+            }            
+            
+            
+            
+            
+        }
+        return ret;
+    }
 }
