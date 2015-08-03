@@ -44,7 +44,9 @@ public class CloudinoFilter implements Filter {
         System.out.println("getRequestURI:"+hreq.getRequestURI());
         System.out.println("getServletPath:"+hreq.getServletPath());
         System.out.println("getRequestURL:"+hreq.getRequestURL());
-        RouteHandler rh = Router.getHandler(hreq.getServletPath(), dobj);System.out.println("rh:"+rh);
+        String path = hreq.getRequestURI().substring(hreq.getContextPath().length());
+        System.out.println("path->:"+path);
+        RouteHandler rh = Router.getHandler(path, dobj);System.out.println("rh:"+rh);
         if (null==rh) { 
             chain.doFilter(request, response);
         } else {
