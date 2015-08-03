@@ -30,7 +30,6 @@ public class LoginHandler implements RouteHandler {
         if (request.getMethod().equals("POST")) {
             String email = request.getParameter("email");
             String password = request.getParameter("password");
-            System.out.println(email + " " + password);
             if (email != null && password != null) {
                 DataObject r = new DataObject();
                 DataObject data = new DataObject();
@@ -42,13 +41,11 @@ public class LoginHandler implements RouteHandler {
 
                 DataList rdata = ret.getDataObject("response").getDataList("data");
                 if (!rdata.isEmpty()) {
-                    System.out.println("setting _USER_:" + rdata.get(0));
                     DataObject user = (DataObject) rdata.get(0);
                     user.put("isSigned", "true");
                     user.put("signedAt", java.time.Instant.now().toString());
                     request.getSession().setAttribute("_USER_", user);
                     response.sendRedirect(request.getContextPath() + "/panel");
-                    return;
                 }
             }
         } else {
