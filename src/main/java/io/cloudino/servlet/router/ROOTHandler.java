@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class ROOTHandler implements RouteHandler {
     private Mustache mustache;
-    private static final Logger logger = Logger.getLogger(ROOTHandler.class.getName());
+    private static final Logger logger = Logger.getLogger("i.c.s.r.ROOTHandler");
     
 
     @Override

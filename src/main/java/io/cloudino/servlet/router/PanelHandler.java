@@ -16,7 +16,7 @@ import org.semanticwb.datamanager.DataObject;
  */
 public class PanelHandler implements RouteHandler {
     private Mustache mustache;
-    private static final Logger logger = Logger.getLogger(PanelHandler.class.getName());
+    private static final Logger logger = Logger.getLogger("i.c.s.r.PanelHandler");
     
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {

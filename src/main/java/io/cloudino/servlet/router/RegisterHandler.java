@@ -20,7 +20,7 @@ import org.semanticwb.datamanager.SWBScriptEngine;
 public class RegisterHandler implements RouteHandler {
 
     private Mustache mustache;
-    private static final Logger logger = Logger.getLogger(RegisterHandler.class.getName());
+    private static final Logger logger = Logger.getLogger("i.c.s.r.RegisterHandler");
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {

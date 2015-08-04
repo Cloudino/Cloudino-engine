@@ -21,7 +21,7 @@ import org.semanticwb.datamanager.SWBScriptEngine;
 public class LoginHandler implements RouteHandler {
 
     private Mustache mustache;
-    private static final Logger logger = Logger.getLogger(LoginHandler.class.getName());
+    private static final Logger logger = Logger.getLogger("i.c.s.r.LoginHandler");
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {

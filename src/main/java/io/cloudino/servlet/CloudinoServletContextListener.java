@@ -17,7 +17,7 @@ import org.semanticwb.datamanager.script.ScriptObject;
 
 @WebListener
 public class CloudinoServletContextListener implements ServletContextListener {
-    static Logger log=Logger.getLogger(CloudinoServletContextListener.class.getName());
+    static Logger log=Logger.getLogger("i.c.s.CloudinoServletContextListener");
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {   
