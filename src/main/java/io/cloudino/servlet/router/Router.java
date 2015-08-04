@@ -3,12 +3,16 @@ package io.cloudino.servlet.router;
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.semanticwb.datamanager.DataObject;
 import org.semanticwb.datamanager.script.ScriptObject;
 
@@ -44,6 +48,42 @@ public class Router {
             if ("true".equalsIgnoreCase(path.getString("isRestricted"))){
                 securedRoutes.add(path.getString("routePath"));
             }
+            if (null!=path.getString("forwardTo")) {
+                final String jspRoute = path.getString("forwardTo");
+                RouteHandler rh = new RouteHandler() {
+
+                    @Override
+                    public void config(Mustache mustache) {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+                        request.getServletContext().getRequestDispatcher(jspRoute).include(request, response);
+                    }
+                };
+                routes.put(path.getString("routePath"), rh);
+                return;
+            }
+            if (null!=path.getString("jspMapTo")) {
+                final String jspRoute = path.getString("jspMapTo");
+                RouteHandler rh = new RouteHandler() {
+                    private final String mapTo = jspRoute;
+                    @Override
+                    public void config(Mustache mustache) {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+                        String name = request.getRequestURI();
+                        name = name.substring(name.lastIndexOf("/")+1);
+                        request.getServletContext().getRequestDispatcher(mapTo+name+".jsp").include(request, response);
+                    }
+                };
+                routes.put(path.getString("routePath"), rh);
+                return;
+            }
             if (null==path.getString("routeHandler")) return;
             RouteHandler rh = (RouteHandler)Class.forName(path.getString("routeHandler")).newInstance();
             String template = path.getString("template");
@@ -57,16 +97,22 @@ public class Router {
         }
     }
     private RouteHandler getRouterHandler(final String path, final DataObject user){
-        String route = path.substring(1);
-        if (route.contains("/")){
-            route=route.substring(0, route.indexOf("/"));
-        }
+        final String routeb = path.substring(1);
+        String route = null;
+        if (routeb.contains("/")){
+            route=routeb.substring(0, routeb.indexOf("/"));
+        } else route=routeb;
         logger.fine("processing route: "+route); 
         if(securedRoutes.contains(route) && 
                 ((null==user) || 
-                !"true".equalsIgnoreCase(user.getString("isSigned")))){ System.out.println("is Secure, but no User, going for loginRoute");
+                !"true".equalsIgnoreCase(user.getString("isSigned")))){
             return routes.get(loginRoute);
         }
+        if (routes.containsKey(routeb))
+            return routes.get(routeb);
+        final String routeJsp = routeb.substring(0,routeb.lastIndexOf("/")+1)+"*";
+        if (routes.containsKey(routeJsp))
+            return routes.get(routeJsp);
         return routes.get(route);
     } 
 }
