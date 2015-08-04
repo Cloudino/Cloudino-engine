@@ -40,6 +40,17 @@ public class DeviceMgr
         return instance;
     }
     
+    
+    public boolean idDeviceConnected(String id)
+    {
+        Device dev=devices.get(id);
+        if(dev!=null && dev.isConnected())
+        {
+            return true;
+        }
+        return false;
+    }
+    
     public Device getDevice(String id)
     {
         Device dev=devices.get(id);

@@ -56,6 +56,11 @@ public class Device {
         @Override
         public String toString() 
         {
+            return name+(sname!=null?" -> ("+sname+")":"");
+        }
+        
+        public String detail() 
+        {
             return key+" name:"+name+(sname!=null?" -> ("+sname+")":"")+" speed:"+speed+" mcu:"+mcu;
         }
         

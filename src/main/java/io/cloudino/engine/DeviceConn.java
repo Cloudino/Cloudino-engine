@@ -6,8 +6,6 @@
 
 package io.cloudino.engine;
 
-import io.cloudino.engine.Device;
-import io.cloudino.engine.DeviceMgr;
 import io.cloudino.server.DeviceServer;
 import java.io.IOException;
 import java.io.InputStream;

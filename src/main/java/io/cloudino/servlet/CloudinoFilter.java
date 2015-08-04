@@ -31,28 +31,30 @@ public class CloudinoFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        Object obj = ((HttpServletRequest)request).getSession().getAttribute("_USER_");System.out.println("obj:"+obj);
+        Object obj = ((HttpServletRequest)request).getSession().getAttribute("_USER_");
+//        System.out.println("obj:"+obj);
         DataObject dobj = null;
         if ((null!=obj) && (obj instanceof DataObject)) {
             dobj = (DataObject)obj;
         }
         HttpServletRequest hreq = ((HttpServletRequest)request);
-        System.out.println("*************************************");
-        System.out.println("getContextPath:"+hreq.getContextPath());
-        System.out.println("getPathInfo:"+hreq.getPathInfo());
-        System.out.println("getPathTranslated:"+hreq.getPathTranslated());
-        System.out.println("getRequestURI:"+hreq.getRequestURI());
-        System.out.println("getServletPath:"+hreq.getServletPath());
-        System.out.println("getRequestURL:"+hreq.getRequestURL());
+//        System.out.println("*************************************");
+//        System.out.println("getContextPath:"+hreq.getContextPath());
+//        System.out.println("getPathInfo:"+hreq.getPathInfo());
+//        System.out.println("getPathTranslated:"+hreq.getPathTranslated());
+//        System.out.println("getRequestURI:"+hreq.getRequestURI());
+//        System.out.println("getServletPath:"+hreq.getServletPath());
+//        System.out.println("getRequestURL:"+hreq.getRequestURL());
         String path = hreq.getRequestURI().substring(hreq.getContextPath().length());
-        System.out.println("path->:"+path);
-        RouteHandler rh = Router.getHandler(path, dobj);System.out.println("rh:"+rh);
+//        System.out.println("path->:"+path);
+        RouteHandler rh = Router.getHandler(path, dobj);
+//        System.out.println("rh:"+rh);
         if (null==rh) { 
             chain.doFilter(request, response);
         } else {
             rh.handle(hreq, (HttpServletResponse)response);
         }
-        System.out.println("");
+//        System.out.println("");
     }
 
     @Override

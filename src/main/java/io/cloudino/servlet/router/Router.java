@@ -78,7 +78,7 @@ public class Router {
                     public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
                         String name = request.getRequestURI();
                         name = name.substring(name.lastIndexOf("/")+1);
-                        request.getServletContext().getRequestDispatcher(mapTo+name+".jsp").include(request, response);
+                        request.getServletContext().getRequestDispatcher(mapTo+name+".jsp").forward(request, response);
                     }
                 };
                 routes.put(path.getString("routePath"), rh);

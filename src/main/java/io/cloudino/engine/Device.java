@@ -23,10 +23,13 @@ import org.semanticwb.datamanager.DataObject;
 public class Device 
 {
     private static final Set<Observer> observers =new CopyOnWriteArraySet<Observer>();
-    DeviceMgr mgr=null;
+    private DeviceMgr mgr=null;
     private String id;
-    DeviceConn con=null;
-    DataObject data=null;
+    private DeviceConn con=null;
+    private DataObject data=null;
+    
+    private long createdTime=System.currentTimeMillis();
+    private long connectedTime=System.currentTimeMillis();
 
     public Device(String id, DataObject data, DeviceMgr mgr) 
     {
@@ -38,6 +41,14 @@ public class Device
     public String getId() {
         return id;
     }
+
+    public long getConnectedTime() {
+        return connectedTime;
+    }
+
+    public long getCreatedTime() {
+        return createdTime;
+    }
     
     public boolean isConnected()
     {
@@ -47,6 +58,7 @@ public class Device
     protected void setConnection(DeviceConn con)
     {
         this.con=con;
+        connectedTime=System.currentTimeMillis();
     }
     
     protected void closeConnection()
@@ -173,10 +185,6 @@ public class Device
             {
                 e.printStackTrace();
             }            
-            
-            
-            
-            
         }
         return ret;
     }

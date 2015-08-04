@@ -21,11 +21,12 @@ public class RegisterHandler implements RouteHandler {
 
     private Mustache mustache;
     private static final Logger logger = Logger.getLogger(RegisterHandler.class.getName());
-    private static final SWBScriptEngine engine = DataMgr.getUserScriptEngine("/cloudino.js", null);
-    private static final SWBDataSource ds = engine.getDataSource("User");
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        SWBScriptEngine engine = DataMgr.getUserScriptEngine("/cloudino.js", null);
+        SWBDataSource ds = engine.getDataSource("User");
+        
         if (request.getMethod().equals("POST")) {
             String fullname = request.getParameter("fullname");
             String email = request.getParameter("email");
@@ -38,7 +39,7 @@ public class RegisterHandler implements RouteHandler {
                     obj.put("email", email);
                     obj.put("password", password);
                     ds.addObj(obj);
-                    engine.close();
+                    //engine.close();
                     response.sendRedirect(request.getContextPath() + "/panel");
                 }
             }

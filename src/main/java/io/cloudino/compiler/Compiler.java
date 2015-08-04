@@ -13,11 +13,16 @@ import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
+import java.util.TreeSet;
 import java.util.function.BiConsumer;
+import org.semanticwb.datamanager.DataMgr;
+import org.semanticwb.datamanager.SWBScriptEngine;
 
 /**
  *
@@ -28,11 +33,36 @@ public class Compiler
     private String apath=null;
     private Properties props=new Properties();
     private HashMap<String,Device> devices;
+    private TreeSet<Device> odevices;
     
     private static String gcc="/hardware/tools/avr/bin/avr-gcc";
     private static String gpp="/hardware/tools/avr/bin/avr-g++";
     private static String ar="/hardware/tools/avr/bin/avr-ar"; 
     private static String ocpy="/hardware/tools/avr/bin/avr-objcopy";    
+    
+    private static Compiler instance=null;
+    
+    public static Compiler getInstance()
+    {
+        if(instance==null)
+        {
+            synchronized(Compiler.class)
+            {
+                if(instance==null)
+                {
+                    try
+                    {
+                        SWBScriptEngine engine=DataMgr.getUserScriptEngine("/cloudino.js",null);
+                        instance=new Compiler(engine.getScriptObject().get("config").getString("arduinoPath"));
+                    }catch(Exception e)
+                    {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+        return instance;
+    }
     
 
     public Compiler(String arduino_path) throws IOException
@@ -139,6 +169,11 @@ public class Compiler
         return devices;
     }
     
+    public Iterator listDevices()
+    {
+        return odevices.iterator();
+    }
+    
     public static void main(String[] args) 
     {
         try
@@ -159,7 +194,14 @@ public class Compiler
     {
         System.out.println("Cloudino compiler v0.1");
         devices=new HashMap();
-        props.load(new FileInputStream(apath+"/hardware/arduino/avr/boards.txt"));
+        odevices=new TreeSet(new Comparator<Device>(){
+            @Override
+            public int compare(Device o1, Device o2) {
+                return o1.toString().compareTo(o2.toString());
+            }
+        });
+        
+        props.load(new InputStreamReader(new FileInputStream(apath+"/hardware/arduino/avr/boards.txt"),"UTF8"));
         Iterator it=props.keySet().iterator();
         while (it.hasNext()) {
             String key = (String)it.next();
@@ -178,6 +220,7 @@ public class Compiler
                 System.out.println(u);
             }
         });
+        odevices.addAll(devices.values());
     }
     
     private String convertIno2Cpp(String code, File fino,String file) throws IOException
