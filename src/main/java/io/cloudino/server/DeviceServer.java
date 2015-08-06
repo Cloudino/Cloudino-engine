@@ -19,7 +19,7 @@ import java.util.logging.Logger;
  */
 public class DeviceServer extends Thread
 {
-    static Logger log=Logger.getLogger(DeviceServer.class.getName());
+    static Logger log=Logger.getLogger("i.c.e.DeviceServer");
     
     private int port = 9595;
     private boolean running = false;
