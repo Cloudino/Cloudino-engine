@@ -46,7 +46,7 @@ public class LoginHandler implements RouteHandler {
                     user.put("isSigned", "true");
                     user.put("signedAt", java.time.Instant.now().toString());
                     request.getSession().setAttribute("_USER_", user);
-                    response.sendRedirect(request.getContextPath() + "/panel");
+                    response.sendRedirect(request.getContextPath() + "/panel/");
                 }
             }
         } else {

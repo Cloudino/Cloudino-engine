@@ -63,7 +63,7 @@ public class Router {
 
                     @Override
                     public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-                        request.getServletContext().getRequestDispatcher(jspRoute).include(request, response);
+                        request.getServletContext().getRequestDispatcher(jspRoute).forward(request, response);
                     }
                 };
                 routes.put(path.getString("routePath"), rh);
