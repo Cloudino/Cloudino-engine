@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.Writer;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -22,7 +24,7 @@ import java.util.ArrayList;
  */
 public class HexSender 
 {
-    int MAX_TIMEOUT=10000;
+    int MAX_TIMEOUT=5000;
     
     /**
      * Hex Data Class
@@ -147,7 +149,8 @@ public class HexSender
             if(in.available()>0)
             {
                 int r=in.read();
-                if(r==-1 || r==Byte.toUnsignedInt(b))return true;
+                //System.out.println("wf:"+r+"="+b);
+                if(r==-1 || r==0 || r==Byte.toUnsignedInt(b))return true;
             }
             Thread.sleep(1L);
         }
@@ -163,40 +166,43 @@ public class HexSender
             {
                 byte ret[]=new byte[n];
                 in.read(ret);
+                //System.out.println("read:"+new String(ret));
                 return ret;
             }
         }
         return null;
     }
     
-    public boolean acknowledge(InputStream in) throws IOException, InterruptedException
+    public boolean acknowledge(InputStream in, Writer sout) throws IOException, InterruptedException
     {
-        if(wait_for(in,(byte)0x14, MAX_TIMEOUT) && wait_for(in,(byte)0x10, MAX_TIMEOUT))    // #STK_INSYNC, STK_OK
+        if(
+                wait_for(in,(byte)0x14, MAX_TIMEOUT) && 
+                wait_for(in,(byte)0x10, MAX_TIMEOUT))    // #STK_INSYNC, STK_OK
         {
-            System.out.println("success"); 
+            sout.write("success\n"); 
             return true;
         }
         else
         {
-            System.out.println("failed"); 
+            sout.write("failed\n"); 
             return false;
         }
     }    
     
-    public boolean program(Data[] chunks, InputStream in, OutputStream out) throws IOException, InterruptedException
+    public boolean program(Data[] chunks, InputStream in, OutputStream out, Writer sout) throws IOException, InterruptedException
     {
-        System.out.print("Connection to Arduino bootloader:");
+        sout.write("Connection to Arduino bootloader:");
         send(out,new byte[]{0x30,0x20});    // #STK_GET_SYNCH, SYNC_CRC_EOP
-        if(!acknowledge(in))return false;
-        System.out.print("Enter in programming mode:");
+        if(!acknowledge(in,sout))return false;
+        sout.write("Enter in programming mode:");
         send(out,new byte[]{0x50,0x20});    // #STK_ENTER_PROGMODE, SYNC_CRC_EOP
-        if(!acknowledge(in))return false;
-        System.out.print("Read device signature:");
+        if(!acknowledge(in,sout))return false;
+        sout.write("Read device signature:");
         send(out,new byte[]{0x75,0x20});    // #STK_READ_SIGN, SYNC_CRC_EOP
         if(wait_for(in,(byte)0x14, MAX_TIMEOUT))   //#STK_INSYNC
         {
             byte[] received=return_data(in,MAX_TIMEOUT, 3);
-            System.out.println(toBin2Hex(received));
+            sout.write(toBin2Hex(received)+"\n");
             if(!wait_for(in,(byte)0x10, MAX_TIMEOUT))    //#STK_INSYNC
             {
                 return false;
@@ -209,17 +215,17 @@ public class HexSender
         {
             Data chunk=chunks[x];
             int total=chunk.bin.length;
-            //System.out.println("Chunk Size:"+chunk.addr+" "+chunk.bin.length);
+            //sout.writeln("Chunk Size:"+chunk.addr+" "+chunk.bin.length);
             if(total>0)
             {
                 int current_page=chunk.addr;
                 int index=0;
                 while(total>0)
                 {
-                    System.out.print("Load memory address"+" "+current_page+":");
+                    sout.write("Load memory address"+" "+current_page+":");
                     send(out,new byte[]{0x55,(byte)(current_page&0xFF),(byte)(current_page>>8),0x20}); //#STK_LOAD_ADDRESS, address, SYNC_CRC_EOP
-                    if(!acknowledge(in))return false;
-                    System.out.print("Program memory address:");
+                    if(!acknowledge(in,sout))return false;
+                    sout.write("Program memory address:");
                     if(total<0x80)
                     {
                         send(out,new byte[]{0x64,0x00,(byte)total,0x20}); //#STK_PROGRAM_PAGE, page size, flash memory
@@ -231,7 +237,7 @@ public class HexSender
                         send(out,chunk.bin,index,0x80);                  //data
                         send(out,new byte[]{0x20});                      //SYNC_CRC_EOP
                     }
-                    if(!acknowledge(in))return false;
+                    if(!acknowledge(in,sout))return false;
                     current_page+= 0x40;
                     total -= 0x80;
                     index += 0x80;
@@ -239,9 +245,9 @@ public class HexSender
             }
             
         }
-        System.out.print("Leave programming mode:");
+        sout.write("Leave programming mode:");
         send(out,new byte[]{0x51,0x20});            //#STK_LEAVE_PROGMODE, SYNC_CRC_EOP
-        if(!acknowledge(in))return false;
+        if(!acknowledge(in,sout))return false;
         return true;
     }
     
@@ -283,7 +289,7 @@ public class HexSender
                 out.write(ByteBuffer.allocate(4).putInt(speed).array()); 
                 out.flush();
                 Thread.sleep(400);
-                if(!obj.program(data,in,out))System.out.println("--Error--");
+                if(!obj.program(data,in,out,new PrintWriter(System.out)))System.out.println("--Error--");
                 socket.close();
             }
         }catch(Exception e)

@@ -55,6 +55,7 @@ public class DeviceServer extends Thread
             {
                 //System.out.println("running");
                 Socket sock = sserv.accept();
+                sock.setTcpNoDelay(true);
                 try
                 {
                     DeviceConn conn = new DeviceConn(sock, this);

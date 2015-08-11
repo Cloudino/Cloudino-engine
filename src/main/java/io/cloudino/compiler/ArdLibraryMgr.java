@@ -16,18 +16,18 @@ import java.util.regex.Pattern;
  *
  * @author javiersolis
  */
-public class LibraryMgr extends ArrayList<Library>
+public class ArdLibraryMgr extends ArrayList<ArdLibrary>
 {
     private String arduino_path;
     
-    public LibraryMgr(String arduino_path) 
+    public ArdLibraryMgr(String arduino_path) 
     {
         this.arduino_path=arduino_path;
     }
     
-    LibraryMgr addLocalLibrary(String name)
+    ArdLibraryMgr addLocalLibrary(String name)
     {
-        Library l=new Library(name, arduino_path);
+        ArdLibrary l=new ArdLibrary(name, arduino_path);
         if(l.base.exists() && !this.contains(l))
         {
             add(l);
@@ -35,9 +35,9 @@ public class LibraryMgr extends ArrayList<Library>
         return this;
     }    
     
-    LibraryMgr addExternalLibrary(String library_path)
+    ArdLibraryMgr addExternalLibrary(String library_path)
     {
-        Library l=new Library(library_path);
+        ArdLibrary l=new ArdLibrary(library_path);
         if(l.base.exists() && !this.contains(l))
         {
             add(l);
@@ -45,11 +45,11 @@ public class LibraryMgr extends ArrayList<Library>
         return this;
     }    
     
-    LibraryMgr addInclude(String include)
+    ArdLibraryMgr addInclude(String include)
     {
         if(include.endsWith(".h"))
         {
-            Library l=new Library(include.substring(0,include.length()-2), arduino_path);
+            ArdLibrary l=new ArdLibrary(include.substring(0,include.length()-2), arduino_path);
             if(l.base.exists() && !this.contains(l))
             {
                 add(l);
@@ -78,9 +78,9 @@ public class LibraryMgr extends ArrayList<Library>
     public ArrayList<File> getSrcList()
     {
         ArrayList<File> arr=new ArrayList();
-        Iterator<Library> it=iterator();
+        Iterator<ArdLibrary> it=iterator();
         while (it.hasNext()) {
-            Library library = it.next();
+            ArdLibrary library = it.next();
             arr.add(library.src);
         }
         return arr;

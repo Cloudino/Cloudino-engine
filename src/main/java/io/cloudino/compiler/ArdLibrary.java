@@ -12,18 +12,18 @@ import java.io.File;
  *
  * @author javiersolis
  */
-public class Library {
+public class ArdLibrary {
     public String include;
     public String name;
     public File base;
     public File src;
     
-    public Library(String name, String arduino_path)
+    public ArdLibrary(String name, String arduino_path)
     {
         this(name, name+".h", arduino_path);
     }    
     
-    public Library(String name, String include, String arduino_path)
+    public ArdLibrary(String name, String include, String arduino_path)
     {
         this.name=name;
         this.include=include;
@@ -31,7 +31,7 @@ public class Library {
         this.src=new File(arduino_path+"/libraries/"+name+"/src");
     }
     
-    public Library(String library_path)
+    public ArdLibrary(String library_path)
     {
         this.base=new File(library_path);
         this.src=this.base;
@@ -50,8 +50,8 @@ public class Library {
     @Override
     public boolean equals(Object obj) 
     {
-        if(!(obj instanceof Library))return false;
-        return base.getPath().equals(((Library)obj).base.getPath());
+        if(!(obj instanceof ArdLibrary))return false;
+        return base.getPath().equals(((ArdLibrary)obj).base.getPath());
         
     }
 

@@ -33,6 +33,16 @@ public class DeviceConn
     private long time=System.currentTimeMillis();
     private CommandBuffer buffer=null;
     
+    private boolean uploading=false;
+
+    public void setUploading(boolean uploading) {
+        this.uploading = uploading;
+    }
+
+    public boolean isUploading() {
+        return uploading;
+    }
+    
     /** Creates a new instance of SConn */
     public DeviceConn(Socket sock, DeviceServer server) throws IOException
     {
@@ -50,45 +60,48 @@ public class DeviceConn
         boolean ret=false;
         try
         {
-            if(System.currentTimeMillis()-time>10000)
+            if(!uploading)
             {
-                time=System.currentTimeMillis();
-                System.out.println("Ping");
-                write((byte)'_');
-            }
-            while(inputStream.available()>0)
-            {
-                time=System.currentTimeMillis();
-                int b=inputStream.read();
-                if(b==-1)
+                if(System.currentTimeMillis()-time>10000)
                 {
-                    close();
-                    break;
+                    time=System.currentTimeMillis();
+                    System.out.println("Ping");
+                    write((byte)'_');
                 }
-                buffer.write(b);
-            }
-            if(buffer.hasCommand())
-            {
-                Command cmd=buffer.getCommand();
-                if(cmd.type==0)
+                while(inputStream.available()>0)
                 {
-                    String topic=new String(cmd.topic,"utf8");
-                    String msg=new String(cmd.msg,"utf8");
-                    System.out.println("Topic:"+topic+":"+msg);
-                    if(topic.equals("$ID"))
+                    time=System.currentTimeMillis();
+                    int b=inputStream.read();
+                    if(b==-1)
                     {
-                        device=DeviceMgr.getInstance().getDevice(msg);
-                        device.setConnection(this);
-                    }else
+                        close();
+                        break;
+                    }
+                    buffer.write(b);
+                }
+                if(buffer.hasCommand())
+                {
+                    Command cmd=buffer.getCommand();
+                    if(cmd.type==0)
                     {
-                        if(device!=null)
+                        String topic=new String(cmd.topic,"utf8");
+                        String msg=new String(cmd.msg,"utf8");
+                        System.out.println("Topic:"+topic+":"+msg);
+                        if(topic.equals("$ID"))
                         {
-                            device.receive(topic, msg);
-                        }
-                    }      
-                }else if(cmd.type==1)               //LOG
-                {
-                    device.receiveLog(new String(cmd.topic,"utf8"));
+                            device=DeviceMgr.getInstance().getDevice(msg);
+                            device.setConnection(this);
+                        }else
+                        {
+                            if(device!=null)
+                            {
+                                device.receive(topic, msg);
+                            }
+                        }      
+                    }else if(cmd.type==1)               //LOG
+                    {
+                        device.receiveLog(new String(cmd.topic,"utf8"));
+                    }
                 }
             }
         } catch (Exception e)
@@ -101,14 +114,19 @@ public class DeviceConn
     
     public void post(String topic, String msg)
     {
-        write(""+SEP+MSEP+topic.getBytes().length+SEP+topic+SSEP+msg.getBytes().length+SEP+msg);
+        write(""+(char)SEP+(char)MSEP+topic.getBytes().length+(char)SEP+topic+(char)SSEP+msg.getBytes().length+(char)SEP+msg);
     }     
     
     public void write(String str)
     {
+        System.out.println("Write String:"+str);
         try
         {
-            if(!isClosed())outputStream.write(str.getBytes("utf8"));
+            if(!isClosed())
+            {
+                outputStream.write(str.getBytes("utf8"));
+                outputStream.flush();
+            }
             else close();
         }catch(IOException e)
         {
@@ -122,7 +140,11 @@ public class DeviceConn
     {
         try
         {
-            if(!isClosed())outputStream.write(data);
+            if(!isClosed())
+            {
+                outputStream.write(data);
+                outputStream.flush();
+            }
             else close();
         }catch(IOException e)
         {
@@ -309,4 +331,6 @@ class CommandBuffer
     {
         return commands.poll();
     }
+    
+    
 }

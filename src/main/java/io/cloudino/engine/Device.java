@@ -7,10 +7,10 @@
 package io.cloudino.engine;
 
 import io.cloudino.utils.HexSender;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.nio.ByteBuffer;
+import java.io.Writer;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -159,33 +159,44 @@ public class Device
         return data;
     }
     
-    public boolean sendHex(InputStream hex, PrintWriter sout)
+    public boolean sendHex(InputStream hex, Writer sout) throws IOException
     {
+        if(con!=null)con.setUploading(true);
+        System.out.println("sendHex...");
         boolean ret=false;
         if(isConnected())
         {
-            con.post("$CDINOUPDT", id);
+            int speed=57600;
+            if(getData()!=null)
+            {
+                io.cloudino.compiler.ArdCompiler cmp=io.cloudino.compiler.ArdCompiler.getInstance();
+                String type=getData().getString("type");
+                System.out.println("type:"+type);
+                io.cloudino.compiler.ArdDevice dvc=cmp.getDevices().get(type);
+                System.out.println("dvc:"+dvc);
+                if(dvc!=null)speed=dvc.speed;
+            }
+            System.out.println("speed:"+speed);
             
-            sout.println("Cloudino remote programmer 2015 (v0.1)");
+            sout.write("Cloudino remote programmer 2015 (v0.1)\n");
             HexSender obj=new HexSender();
             try
             {
                 HexSender.Data[] data=obj.readHex(hex);
-                Integer speed=Integer.parseInt("57600");
-                sout.println("Connection Opened:");
+                sout.write("Connection Opened:\n");
                 InputStream in=con.getInputStream();
                 OutputStream out=con.getOutputStream();
-                out.write((byte)0);             //init
-                out.write(ByteBuffer.allocate(4).putInt(speed).array()); 
-                out.flush();
+                con.post("$CDINOUPDT", ""+speed);
                 Thread.sleep(400);
-                if(!obj.program(data,in,out))System.out.println("--Error--");
+                while(in.available()>0)in.read();
+                if(!obj.program(data,in,out,sout))sout.write("--Error--");
                 con.close();
             }catch(Exception e)
             {
                 e.printStackTrace();
             }            
         }
+        if(con!=null)con.setUploading(false);
         return ret;
     }
 }

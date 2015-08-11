@@ -28,32 +28,32 @@ import org.semanticwb.datamanager.SWBScriptEngine;
  *
  * @author javiersolis
  */
-public class Compiler 
+public class ArdCompiler 
 {
     private String apath=null;
     private Properties props=new Properties();
-    private HashMap<String,Device> devices;
-    private TreeSet<Device> odevices;
+    private HashMap<String,ArdDevice> devices;
+    private TreeSet<ArdDevice> odevices;
     
     private static String gcc="/hardware/tools/avr/bin/avr-gcc";
     private static String gpp="/hardware/tools/avr/bin/avr-g++";
     private static String ar="/hardware/tools/avr/bin/avr-ar"; 
     private static String ocpy="/hardware/tools/avr/bin/avr-objcopy";    
     
-    private static Compiler instance=null;
+    private static ArdCompiler instance=null;
     
-    public static Compiler getInstance()
+    public static ArdCompiler getInstance()
     {
         if(instance==null)
         {
-            synchronized(Compiler.class)
+            synchronized(ArdCompiler.class)
             {
                 if(instance==null)
                 {
                     try
                     {
                         SWBScriptEngine engine=DataMgr.getUserScriptEngine("/cloudino.js",null);
-                        instance=new Compiler(engine.getScriptObject().get("config").getString("arduinoPath"));
+                        instance=new ArdCompiler(engine.getScriptObject().get("config").getString("arduinoPath"));
                     }catch(Exception e)
                     {
                         e.printStackTrace();
@@ -65,7 +65,7 @@ public class Compiler
     }
     
 
-    public Compiler(String arduino_path) throws IOException
+    public ArdCompiler(String arduino_path) throws IOException
     {
         this.apath=arduino_path;
         init();
@@ -81,12 +81,12 @@ public class Compiler
     
     public void compile(String path, String device, String build) throws IOException, InterruptedException
     {
-        compile(path, device, build, new LibraryMgr(apath));
+        compile(path, device, build, new ArdLibraryMgr(apath));
     }    
     
     public void compile(String path, String device, String build, String libs[]) throws IOException, InterruptedException
     {
-        LibraryMgr libmgr=new LibraryMgr(apath);
+        ArdLibraryMgr libmgr=new ArdLibraryMgr(apath);
         for(int x=0;x<libs.length;x++)
         {
             libmgr.addLocalLibrary(libs[x]);
@@ -94,7 +94,7 @@ public class Compiler
         compile(path, device, build, libmgr);
     }
 
-    public void compile(String path, String device, String build, LibraryMgr libs) throws IOException, InterruptedException
+    public void compile(String path, String device, String build, ArdLibraryMgr libs) throws IOException, InterruptedException
     {
         File fino=new File(path);
         compileCode(readFile(fino), path, device, build, libs);
@@ -102,12 +102,12 @@ public class Compiler
     
     public void compileCode(String code, String path, String device, String build) throws IOException, InterruptedException
     {
-        compileCode(code, path, device, build, new LibraryMgr(apath));
+        compileCode(code, path, device, build, new ArdLibraryMgr(apath));
     }    
     
-    public void compileCode(String code, String path, String device, String build, LibraryMgr libs) throws IOException, InterruptedException
+    public void compileCode(String code, String path, String device, String build, ArdLibraryMgr libs) throws IOException, InterruptedException
     {
-        Device d=devices.get(device);
+        ArdDevice d=devices.get(device);
         File fino=new File(path);
         String fname=fino.getName().split("\\.")[0];
         File fbuild=new File(build);
@@ -165,7 +165,7 @@ public class Compiler
 
     }
 
-    public HashMap<String, Device> getDevices() {
+    public HashMap<String, ArdDevice> getDevices() {
         return devices;
     }
     
@@ -178,7 +178,7 @@ public class Compiler
     {
         try
         {
-            Compiler com=new Compiler("/Applications/Arduino.app/Contents/Java");
+            ArdCompiler com=new ArdCompiler("/Applications/Arduino.app/Contents/Java");
             //com.compile("/Applications/Arduino1.6.4.app/Contents/Java/examples/01.Basics/Blink/Blink.ino","pro.menu.cpu.8MHzatmega328","/Users/javiersolis/Documents/Arduino/build");
             //com.compile("/Applications/Arduino1.6.4.app/Contents/Java/libraries/Servo/examples/Knob/Knob.ino","uno","/Users/javiersolis/Documents/Arduino/build");
             com.compile("/opt/cloudino/bor/src/Blink.ino","uno");
@@ -194,9 +194,9 @@ public class Compiler
     {
         System.out.println("Cloudino compiler v0.1");
         devices=new HashMap();
-        odevices=new TreeSet(new Comparator<Device>(){
+        odevices=new TreeSet(new Comparator<ArdDevice>(){
             @Override
-            public int compare(Device o1, Device o2) {
+            public int compare(ArdDevice o1, ArdDevice o2) {
                 return o1.toString().compareTo(o2.toString());
             }
         });
@@ -208,15 +208,15 @@ public class Compiler
             String patern=".build.mcu";
             if(key.endsWith(patern))
             {
-                Device d=new Device(key.substring(0,key.length()-patern.length()),props);
+                ArdDevice d=new ArdDevice(key.substring(0,key.length()-patern.length()),props);
                 devices.put(d.key, d);
             }
         }
         
         System.out.println("Encontrados;");
-        devices.forEach(new BiConsumer<String, Device>(){
+        devices.forEach(new BiConsumer<String, ArdDevice>(){
             @Override
-            public void accept(String t, Device u) {
+            public void accept(String t, ArdDevice u) {
                 System.out.println(u);
             }
         });
@@ -310,7 +310,7 @@ public class Compiler
                 }
             };     
     
-    private void compileFile(File file, Device d, File build, ArrayList<File> baseLibs, ArrayList<File> extLibs) throws IOException, InterruptedException
+    private void compileFile(File file, ArdDevice d, File build, ArrayList<File> baseLibs, ArrayList<File> extLibs) throws IOException, InterruptedException
     {
         if(!build.exists())build.mkdirs();
         
@@ -334,7 +334,7 @@ public class Compiler
         exec(exec);
     }
     
-    private void compileLibrary(File lib, Device d, File build, ArrayList<File> baseLibs, ArrayList<File> extLibs) throws IOException, InterruptedException
+    private void compileLibrary(File lib, ArdDevice d, File build, ArrayList<File> baseLibs, ArrayList<File> extLibs) throws IOException, InterruptedException
     {
         if(lib.isDirectory())
         {
@@ -358,7 +358,7 @@ public class Compiler
         }        
     }    
 
-    private void archiveLibrary(File lib, Device d, File build, File lib_build) throws IOException, InterruptedException
+    private void archiveLibrary(File lib, ArdDevice d, File build, File lib_build) throws IOException, InterruptedException
     {
         String exec;
         File files[];
@@ -400,7 +400,7 @@ public class Compiler
         }    
     }
     
-    private void makeElf(String fname, Device d, File build, ArrayList<File> baseLibs, ArrayList<File> extLibs) throws IOException, InterruptedException
+    private void makeElf(String fname, ArdDevice d, File build, ArrayList<File> baseLibs, ArrayList<File> extLibs) throws IOException, InterruptedException
     {
         String exec=apath+gcc+" -w -Os -Wl,--gc-sections -mmcu="+d.mcu+" -o "+build+"/"+fname+".cpp.elf "+build+"/"+fname+".cpp.o";
 

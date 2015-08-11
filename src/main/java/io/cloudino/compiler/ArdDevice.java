@@ -12,7 +12,7 @@ import java.util.Properties;
  *
  * @author javiersolis
  */
-public class Device {
+public class ArdDevice {
  
         public String key;
         public String name;
@@ -24,7 +24,7 @@ public class Device {
         public String core;
         public String board;
 
-        public Device(String key, Properties props) {
+        public ArdDevice(String key, Properties props) {
             this.key=key;
             name=props.getProperty(getRoot()+".name");
             if(!isRoot())sname=props.getProperty(key);

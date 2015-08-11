@@ -40,8 +40,12 @@ public class DeviceMgr
         return instance;
     }
     
-    
-    public boolean idDeviceConnected(String id)
+    /**
+     * Regresa true si el dispositivo esta conectado (online)
+     * @param id
+     * @return 
+     */
+    public boolean isDeviceConnected(String id)
     {
         Device dev=devices.get(id);
         if(dev!=null && dev.isConnected())
@@ -51,6 +55,21 @@ public class DeviceMgr
         return false;
     }
     
+    /**
+     * Regresa dispositivo si esta conectado el dispositivo o un usuario por websockets
+     * @param id
+     * @return 
+     */
+    public Device getDeviceIfPresent(String id)
+    {
+        return devices.get(id);
+    }    
+    
+    /**
+     * Regresa un Objeto Device, si esta presente regresa objeto en cache, de lo contrario crea un objeto temporal
+     * @param id
+     * @return 
+     */
     public Device getDevice(String id)
     {
         Device dev=devices.get(id);
@@ -65,8 +84,8 @@ public class DeviceMgr
                         //TODO: Validar si aqui habra seguridad
                         SWBScriptEngine engine=DataMgr.getUserScriptEngine("/cloudino.js",null);
                         SWBDataSource ds=engine.getDataSource("Device");   
-                        DataObject obj=ds.fetchObjById("_suri:Cloudino:Device:"+id);
-                        engine.close();
+                        DataObject obj=ds.fetchObjById(ds.getBaseUri()+id);
+                        //engine.close();
                         if(obj==null)obj=new DataObject();
                         dev=new Device(id,obj,this);
                         devices.put(id, dev);
