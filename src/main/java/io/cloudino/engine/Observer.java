@@ -16,5 +16,6 @@ public interface Observer {
     
     public void notify(String topic, String msg) throws IOException;
     public void notifyLog(String data) throws IOException;
+    public void notifyCompiler(String data) throws IOException;
     
 }

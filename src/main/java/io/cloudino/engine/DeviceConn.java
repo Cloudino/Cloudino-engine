@@ -89,7 +89,7 @@ public class DeviceConn
                         System.out.println("Topic:"+topic+":"+msg);
                         if(topic.equals("$ID"))
                         {
-                            device=DeviceMgr.getInstance().getDevice(msg);
+                            device=DeviceMgr.getInstance().getDeviceByAuthToken(msg);
                             device.setConnection(this);
                         }else
                         {

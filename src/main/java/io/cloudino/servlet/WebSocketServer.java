@@ -168,6 +168,11 @@ public class WebSocketServer implements Observer
     public void notifyLog(String data) throws IOException {
         session.getBasicRemote().sendText("log:"+data);
     }
+
+    @Override
+    public void notifyCompiler(String data) throws IOException {
+        session.getBasicRemote().sendText("cmp:"+data);
+    }
     
 }
 

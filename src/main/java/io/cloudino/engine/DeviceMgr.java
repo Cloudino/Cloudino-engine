@@ -8,6 +8,7 @@ package io.cloudino.engine;
 
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
+import org.semanticwb.datamanager.DataList;
 import org.semanticwb.datamanager.DataMgr;
 import org.semanticwb.datamanager.DataObject;
 import org.semanticwb.datamanager.SWBDataSource;
@@ -98,6 +99,44 @@ public class DeviceMgr
         }
         return dev;
     }
+    
+    /**
+     * Regresa un Objeto Device, si esta presente regresa objeto en cache, de lo contrario crea un objeto temporal
+     * @param id
+     * @return 
+     */
+    public Device getDeviceByAuthToken(String token)
+    {
+        System.out.println("token:"+token);
+        String id=null;
+        try
+        {
+            SWBScriptEngine engine=DataMgr.getUserScriptEngine("/cloudino.js",null);
+            SWBDataSource ds=engine.getDataSource("Device");   
+            DataObject query=new DataObject();
+            DataObject data=new DataObject();
+            query.put("data", data);
+            data.put("authToken", token);
+            DataObject ret=ds.fetch(query);
+            System.out.println("query:"+query);
+            System.out.println("ret:"+ret);
+            //engine.close();
+            if(ret!=null)
+            {
+                DataList list=ret.getDataObject("response").getDataList("data");
+                if(list!=null && list.size()>0)
+                {
+                    id=list.getDataObject(0).getNumId();
+                }
+            }
+            System.out.println("id:"+id);
+        }catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        if(id!=null)return getDevice(id);
+        return null;
+    }    
     
     public void freeDevice(String id)
     {

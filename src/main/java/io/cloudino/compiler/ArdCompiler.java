@@ -15,12 +15,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.TreeSet;
-import java.util.function.BiConsumer;
 import org.semanticwb.datamanager.DataMgr;
 import org.semanticwb.datamanager.SWBScriptEngine;
 
@@ -31,7 +31,7 @@ import org.semanticwb.datamanager.SWBScriptEngine;
 public class ArdCompiler 
 {
     private String apath=null;
-    private Properties props=new Properties();
+    private final Properties props=new Properties();
     private HashMap<String,ArdDevice> devices;
     private TreeSet<ArdDevice> odevices;
     
@@ -87,9 +87,8 @@ public class ArdCompiler
     public void compile(String path, String device, String build, String libs[]) throws IOException, InterruptedException
     {
         ArdLibraryMgr libmgr=new ArdLibraryMgr(apath);
-        for(int x=0;x<libs.length;x++)
-        {
-            libmgr.addLocalLibrary(libs[x]);
+        for (String lib : libs) {
+            libmgr.addLocalLibrary(lib);
         }
         compile(path, device, build, libmgr);
     }
@@ -214,11 +213,8 @@ public class ArdCompiler
         }
         
         System.out.println("Encontrados;");
-        devices.forEach(new BiConsumer<String, ArdDevice>(){
-            @Override
-            public void accept(String t, ArdDevice u) {
-                System.out.println(u);
-            }
+        devices.forEach((String t, ArdDevice u) -> {
+            System.out.println(u);
         });
         odevices.addAll(devices.values());
     }
@@ -271,44 +267,23 @@ public class ArdCompiler
         return x;
     }
     
-    private static FilenameFilter CFILTER=new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    if(name.endsWith(".c"))return true;
-                    return false;
-                }
-            };
-    
-    private static FilenameFilter CPPFILTER=new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    if(name.endsWith(".cpp"))return true;
-                    return false;
-                }
-            };   
-    
-    private static FileFilter DIRFILTER=new FileFilter() {
-        @Override
-        public boolean accept(File pathname) {
-            return pathname.isDirectory();
-        }
+    private static FilenameFilter CFILTER=(File dir, String name) -> {
+        return name.endsWith(".c");
     };
     
-    private static FilenameFilter OFILTER=new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    if(name.endsWith(".o"))return true;
-                    return false;
-                }
-            };   
+    private static FilenameFilter CPPFILTER=(File dir, String name) -> {
+        return name.endsWith(".cpp");
+    };   
     
-    private static FilenameFilter OAFILTER=new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    if(name.endsWith(".o")||name.endsWith(".a"))return true;
-                    return false;
-                }
-            };     
+    private static FileFilter DIRFILTER=(File pathname) -> pathname.isDirectory();
+    
+    private static final FilenameFilter OFILTER=(File dir, String name) -> {
+        return name.endsWith(".o");
+    };   
+    
+    private static final FilenameFilter OAFILTER=(File dir, String name) -> {
+        return name.endsWith(".o")||name.endsWith(".a");
+    };     
     
     private void compileFile(File file, ArdDevice d, File build, ArrayList<File> baseLibs, ArrayList<File> extLibs) throws IOException, InterruptedException
     {
@@ -340,19 +315,15 @@ public class ArdCompiler
         {
             //************ Compile ******************
             File files[]=lib.listFiles(CFILTER);
-            for(int x=0;x<files.length;x++)
-            {
-                compileFile(files[x], d, build, baseLibs, extLibs);
+            for (File file : files) {
+                compileFile(file, d, build, baseLibs, extLibs);
             }
             files=lib.listFiles(CPPFILTER);
-            for(int x=0;x<files.length;x++)
-            {
-                compileFile(files[x], d, build, baseLibs, extLibs);
+            for (File file : files) {
+                compileFile(file, d, build, baseLibs, extLibs);
             }      
             files=lib.listFiles(DIRFILTER);
-            for(int x=0;x<files.length;x++)
-            {
-                File subDir=files[x];
+            for (File subDir : files) {
                 compileLibrary(subDir, d, new File(build,subDir.getName()), baseLibs, extLibs);
             }          
         }        
@@ -366,18 +337,14 @@ public class ArdCompiler
         {
             //************ Archive ******************
             files=lib_build.listFiles(OFILTER);
-            for(int x=0;x<files.length;x++)
-            {
-                File file=files[x];
+            for (File file : files) {
                 exec=apath+ar+" rcs "+build.getPath()+"/"+((lib.getName().endsWith("src"))?lib.getParentFile().getName():lib.getName())+".a "+file.getPath();
                 //exec=apath+ar+" rcs "+build.getPath()+"/core.a "+file.getPath();
                 exec(exec);                
             }
             
             files=lib_build.listFiles(DIRFILTER);
-            for(int x=0;x<files.length;x++)
-            {
-                File subDir=files[x];
+            for (File subDir : files) {
                 archiveLibrary(lib, d, build,subDir);
             }            
         }        
@@ -386,18 +353,18 @@ public class ArdCompiler
     private void getCompiledLibraryFiles(File lib_build, ArrayList<File> ret)
     {
         File[] files=lib_build.listFiles(OFILTER);
-        for(int x=0;x<files.length;x++)
+        if(files!=null)
         {
-            File file=files[x];
-            ret.add(file);
+            ret.addAll(Arrays.asList(files));
         }
         
         files=lib_build.listFiles(DIRFILTER);
-        for(int x=0;x<files.length;x++)
+        if(files!=null)
         {
-            File subDir=files[x];
-            getCompiledLibraryFiles(subDir,ret);
-        }    
+            for (File subDir : files) {
+                getCompiledLibraryFiles(subDir,ret);
+            }    
+        }
     }
     
     private void makeElf(String fname, ArdDevice d, File build, ArrayList<File> baseLibs, ArrayList<File> extLibs) throws IOException, InterruptedException

@@ -6,6 +6,8 @@
 
 package io.cloudino.engine;
 
+import com.notnoop.apns.APNS;
+import com.notnoop.apns.ApnsService;
 import io.cloudino.utils.HexSender;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,6 +16,7 @@ import java.io.Writer;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import org.semanticwb.datamanager.DataMgr;
 import org.semanticwb.datamanager.DataObject;
 
 /**
@@ -77,6 +80,29 @@ public class Device
         if(this.con==null && observers.isEmpty())mgr.freeDevice(id);
     }
     
+    public void pushNotification(String topic, String msg)
+    {
+        //TODO:configurar esto
+        String myCertPath = DataMgr.getApplicationPath()+"/WEB-INF/classes/apn.p12";
+        String myPassword = "cloudino";
+        //TODO:registrar Token
+        String myToken = "25de509de97a9efafaee322eefdb6f051d84580d67830849e350e72ff230b66c";
+
+        ApnsService service = APNS.newService()
+                .withCert(myCertPath, myPassword)
+                .withSandboxDestination()
+                .build();
+        String myPayload = APNS.newPayload()
+                //.alertBody(args[0])
+                .alertAction(topic)
+                .alertTitle("Cloudino")
+                .alertBody(topic+":"+msg)
+                .badge(1)
+                .sound("default")
+                .build();
+        service.push(myToken, myPayload);        
+    }
+    
     protected void receive(String topic,String msg)
     {
         System.out.println("receive->Topic:"+topic+" msg:"+msg);
@@ -91,6 +117,9 @@ public class Device
                 e.printStackTrace();
             }
         }
+        //TODO: Validar cuales llevan PN
+        pushNotification(topic, msg);
+        
     }  
     
     protected void receiveLog(String data)
@@ -102,6 +131,22 @@ public class Device
             try
             {
                 observer.notifyLog(data);
+            }catch(Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
+    }    
+    
+    protected void receiveCompiler(String data)
+    {
+        System.out.println("receive->Log:"+data);
+        Iterator<Observer> it=observers.iterator();
+        while (it.hasNext()) {
+            Observer observer = it.next();
+            try
+            {
+                observer.notifyCompiler(data);
             }catch(Exception e)
             {
                 e.printStackTrace();
@@ -145,7 +190,10 @@ public class Device
     
     public void registerObserver(Observer obs)
     {
-        observers.add(obs);
+        if(!observers.contains(obs))
+        {
+            observers.add(obs);
+        }
     }
     
     public void removeObserver(Observer obs)
@@ -159,11 +207,33 @@ public class Device
         return data;
     }
     
-    public boolean sendHex(InputStream hex, Writer sout) throws IOException
-    {
+    public boolean sendHex(InputStream hex, final Writer sout) throws IOException
+    {   
+        
+        Writer wout=new Writer()
+        {
+
+            @Override
+            public void write(char[] cbuf, int off, int len) throws IOException {
+                sout.write(cbuf, off, len);
+                receiveCompiler(new String(cbuf, off, len));
+            }
+
+            @Override
+            public void flush() throws IOException {
+                sout.flush();
+            }
+
+            @Override
+            public void close() throws IOException {
+                sout.close();
+            }
+            
+        };
+        
         if(con!=null)con.setUploading(true);
         System.out.println("sendHex...");
-        boolean ret=false;
+        boolean ret=true;
         if(isConnected())
         {
             int speed=57600;
@@ -178,23 +248,31 @@ public class Device
             }
             System.out.println("speed:"+speed);
             
-            sout.write("Cloudino remote programmer 2015 (v0.1)\n");
+            wout.write("Cloudino remote programmer 2015 (v0.1)\n");
             HexSender obj=new HexSender();
             try
             {
                 HexSender.Data[] data=obj.readHex(hex);
-                sout.write("Connection Opened:\n");
+                wout.write("Connection Opened:\n");
                 InputStream in=con.getInputStream();
                 OutputStream out=con.getOutputStream();
                 con.post("$CDINOUPDT", ""+speed);
                 Thread.sleep(400);
                 while(in.available()>0)in.read();
-                if(!obj.program(data,in,out,sout))sout.write("--Error--");
+                if(!obj.program(data,in,out,wout))
+                {
+                    wout.write("--Error--");
+                    ret=false;
+                }
                 con.close();
             }catch(Exception e)
             {
                 e.printStackTrace();
+                ret=false;
             }            
+        }else
+        {
+            ret=false;
         }
         if(con!=null)con.setUploading(false);
         return ret;
