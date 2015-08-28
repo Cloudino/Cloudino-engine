@@ -41,7 +41,6 @@ public class CloudinoServletContextListener implements ServletContextListener {
 //            DataObject obj=ds.fetch();
 //            log.info(""+obj);
 //        } catch (IOException ioe) {log.throwing("CloudinoServletContextListener","contextInitialized", ioe);}
-        engine.close();
     }
 
     @Override

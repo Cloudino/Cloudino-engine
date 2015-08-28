@@ -13,7 +13,6 @@ import org.semanticwb.datamanager.DataMgr;
 import org.semanticwb.datamanager.DataObject;
 import org.semanticwb.datamanager.SWBDataSource;
 import org.semanticwb.datamanager.SWBScriptEngine;
-import sun.security.krb5.JavaxSecurityAuthKerberosAccess;
 
 /**
  *

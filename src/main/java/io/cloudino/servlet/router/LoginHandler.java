@@ -49,7 +49,7 @@ public class LoginHandler implements RouteHandler {
                         user.put("registeredAt", java.time.ZonedDateTime.now().toString());
                     }
                     request.getSession().setAttribute("_USER_", user);
-                    response.sendRedirect(request.getContextPath() + "/panel");
+                    response.sendRedirect(request.getContextPath() + "/panel/");
                 }
             } 
             Map<String, Object> scope = new HashMap<>();

@@ -87,6 +87,10 @@ public class Device
         String myPassword = "cloudino";
         //TODO:registrar Token
         String myToken = "25de509de97a9efafaee322eefdb6f051d84580d67830849e350e72ff230b66c";
+        if(!"softjei@gmail.com".equals(data.getString("email")))
+        {
+            return;
+        }
 
         ApnsService service = APNS.newService()
                 .withCert(myCertPath, myPassword)
