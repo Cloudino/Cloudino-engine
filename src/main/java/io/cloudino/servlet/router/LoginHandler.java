@@ -31,7 +31,7 @@ public class LoginHandler implements RouteHandler {
         if (request.getMethod().equals("POST")) {
             String email = request.getParameter("email");
             String password = request.getParameter("password");
-            if (email != null && password != null) {
+            if (email != null && password != null) {; 
                 DataObject r = new DataObject();
                 DataObject data = new DataObject();
                 r.put("data", data);
@@ -44,11 +44,19 @@ public class LoginHandler implements RouteHandler {
                 if (!rdata.isEmpty()) {
                     DataObject user = (DataObject) rdata.get(0);
                     user.put("isSigned", "true");
-                    user.put("signedAt", java.time.Instant.now().toString());
+                    user.put("signedAt", java.time.ZonedDateTime.now().toString());
+                    if (!user.containsKey("registro")) {
+                        user.put("registeredAt", java.time.ZonedDateTime.now().toString());
+                    }
                     request.getSession().setAttribute("_USER_", user);
-                    response.sendRedirect(request.getContextPath() + "/panel/");
+                    response.sendRedirect(request.getContextPath() + "/panel");
                 }
-            }
+            } 
+            Map<String, Object> scope = new HashMap<>();
+            scope.put("ctx", request.getContextPath());
+            scope.put("error", "Authentication failed");
+            response.setCharacterEncoding("utf-8");
+            mustache.execute(response.getWriter(), scope);
         } else {
             if(null!=request.getParameter("logout")){
                 request.getSession().invalidate();

@@ -66,6 +66,8 @@ eng.routes={
         { routePath: "work", isRestricted: "true"},
         { routePath: "panel", forwardTo: "/work/panel/index.jsp", isRestricted: "true" },
         { routePath: "panel/*", jspMapTo: "/work/panel/", isRestricted: "true"},
+        { routePath: "profile", routeHandler: "io.cloudino.servlet.router.ProfileHandler", isRestricted: "true", template: "profile" },
+        { routePath: "photo", routeHandler: "io.cloudino.servlet.router.PhotoHandler", isRestricted: "false" },
     ],
 };
 
