@@ -1,7 +1,7 @@
 //******* DataStores ***************
 
 eng.config={
-    devicePort:8080,
+    devicePort:9595,
     arduinoPath:"/Applications/Arduino.app/Contents/Java",
     usersWorkPath:"/cloudino/users",
 };
@@ -13,47 +13,6 @@ eng.dataStores["mongodb"]={
     class: "org.semanticwb.datamanager.datastore.DataStoreMongo",
     //envhost:"MONGO_PORT_27017_TCP_ADDR",
     //envport:"MONGO_PORT_27017_TCP_PORT",
-};
-
-//******* DataSorices ************
-eng.dataSources["User"]={
-    scls: "User",
-    modelid: "Cloudino",
-    dataStore: "mongodb",   
-    fields:[
-        {name:"fullname",title:"Nombre",type:"string"},
-        {name:"username",title:"Usuario",type:"string"},
-        {name:"password",title:"Contraseña",type:"password"},
-        {name:"email",title:"Correo electrónico",type:"string"},
-    ],
-};
-
-/******* DataProcessors ************/
-eng.dataProcessors["UserProcessor"]={
-    dataSources: ["User"],
-    actions:["fetch","add","update"],
-    request: function(request, dataSource, action)
-    {
-        if(request.data.password)
-        {
-            request.data.password=this.encodeSHA(request.data.password);
-        }
-        return request;
-    }          
-};
-
-//******* DataSorices ************
-eng.dataSources["Device"]={
-    scls: "Device",
-    modelid: "Cloudino",
-    dataStore: "mongodb",    
-};
-
-//******* DataSorices ************
-eng.dataSources["Datasource"]={
-    scls: "Datasource",
-    modelid: "Cloudino",
-    dataStore: "mongodb",    
 };
 
 eng.routes={
@@ -70,6 +29,75 @@ eng.routes={
         { routePath: "photo", routeHandler: "io.cloudino.servlet.router.PhotoHandler", isRestricted: "false" },
     ],
 };
+
+//******* DataSorices ************
+eng.dataSources["User"]={
+    scls: "User",
+    modelid: "Cloudino",
+    dataStore: "mongodb",   
+    fields:[
+        {name:"fullname",title:"Nombre",type:"string"},
+        //{name:"username",title:"Usuario",type:"string"},
+        {name:"email",title:"Correo electrónico",type:"string"},
+        {name:"password",title:"Contraseña",type:"password"},
+    ],
+};
+
+//******* DataSources ************
+eng.dataSources["Device"]={
+    scls: "Device",
+    modelid: "Cloudino",
+    dataStore: "mongodb",    
+    fields:[
+        {name:"name",title:"Name",type:"string"},
+        //{name:"username",title:"Usuario",type:"string"},
+        {name:"description",title:"Description",type:"string"},
+        {name:"type",title:"Type",type:"string"},
+        {name:"user",title:"User",type:"string"},
+        {name:"sketcher",title:"Sketcher",type:"string"},
+    ],    
+};
+
+//******* DataSorices ************
+eng.dataSources["Datasource"]={
+    scls: "Datasource",
+    modelid: "Cloudino",
+    dataStore: "mongodb",    
+};
+
+eng.dataSources["Control"]={
+    scls: "Control",
+    modelid: "Cloudino",
+    dataStore: "mongodb",    
+    //{user:, device:, title, type:"MsgButton", data:{topic, msg}}
+    fields:[
+        {name:"title",title:"Title",type:"string"},
+        {name:"device",title:"Device",type:"string"},
+        {name:"user",title:"User",type:"string"},
+        {name:"type",title:"Type",type:"string"},
+        {name:"data",title:"Data",type:"object", 
+            fields:[
+                {name:"topic",title:"Topic",type:"string"},
+                {name:"msg",title:"Message",type:"string"},
+            ]
+        },
+    ],      
+};
+
+/******* DataProcessors ************/
+eng.dataProcessors["UserProcessor"]={
+    dataSources: ["User"],
+    actions:["fetch","add","update"],
+    request: function(request, dataSource, action)
+    {
+        if(request.data.password)
+        {
+            request.data.password=this.encodeSHA(request.data.password);
+        }
+        return request;
+    }          
+};
+
 
 /******* DataExtractors ************
 eng.dataExtractors["SWBSocial1"]={
