@@ -2,6 +2,7 @@ package io.cloudino.servlet.router;
 
 import com.github.mustachejava.Mustache;
 import java.io.IOException;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -12,6 +13,7 @@ import org.semanticwb.datamanager.DataMgr;
 import org.semanticwb.datamanager.DataObject;
 import org.semanticwb.datamanager.SWBDataSource;
 import org.semanticwb.datamanager.SWBScriptEngine;
+import sun.security.krb5.JavaxSecurityAuthKerberosAccess;
 
 /**
  *
@@ -38,6 +40,7 @@ public class RegisterHandler implements RouteHandler {
                     obj.put("fullname", fullname);
                     obj.put("email", email);
                     obj.put("password", password);
+                    obj.put("registeredAt", ZonedDateTime.now().toString());
                     ds.addObj(obj);
                     //engine.close();
                     response.sendRedirect(request.getContextPath() + "/panel");

@@ -27,6 +27,7 @@
       </div><!-- /.login-logo -->
       <div class="login-box-body">
         <p class="login-box-msg">Sign in to start your session</p>
+        {{#error}}<p class="login-box-msg text-danger">{{error}}</p>{{/error}}
         <form action="" method="post" data-toggle="validator">
           <div class="form-group has-feedback">
             <input type="email" name="email" class="form-control" placeholder="Email" required>

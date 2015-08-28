@@ -111,9 +111,12 @@ public class Router {
                 return;
             }
             RouteHandler rh = (RouteHandler) Class.forName(path.getString("routeHandler")).newInstance();
+            Mustache mustache = null;
             String template = path.getString("template");
-            InputStreamReader reader = new InputStreamReader(LoginHandler.class.getResourceAsStream("/templates/" + template + ".mustache"));
-            Mustache mustache = mf.compile(reader, template + ".mustache");
+            if (null!=template) {
+                InputStreamReader reader = new InputStreamReader(LoginHandler.class.getResourceAsStream("/templates/" + template + ".mustache"));
+                mustache = mf.compile(reader, template + ".mustache");
+            }
             rh.config(mustache);
             routes.put(path.getString("routePath"), rh);
         } catch (ReflectiveOperationException cnf) {
