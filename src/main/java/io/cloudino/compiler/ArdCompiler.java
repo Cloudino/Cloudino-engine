@@ -9,13 +9,10 @@ package io.cloudino.compiler;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -34,12 +31,7 @@ public class ArdCompiler
     private final Properties props=new Properties();
     private HashMap<String,ArdDevice> devices;
     private TreeSet<ArdDevice> odevices;
-    
-    private static String gcc="/hardware/tools/avr/bin/avr-gcc";
-    private static String gpp="/hardware/tools/avr/bin/avr-g++";
-    private static String ar="/hardware/tools/avr/bin/avr-ar"; 
-    private static String ocpy="/hardware/tools/avr/bin/avr-objcopy";    
-    
+   
     private static ArdCompiler instance=null;
     
     public static ArdCompiler getInstance()
@@ -70,98 +62,32 @@ public class ArdCompiler
         this.apath=arduino_path;
         init();
     }
-    
-    public void compile(String path, String device) throws IOException, InterruptedException
-    {
-        File fino=new File(path);
-        String fname=fino.getName().split("\\.")[0];
-        String build=fino.getParent()+"/build"; 
-        compile(path, device, build);
-    }
-    
-    public void compile(String path, String device, String build) throws IOException, InterruptedException
-    {
-        compile(path, device, build, new ArdLibraryMgr(apath));
-    }    
-    
-    public void compile(String path, String device, String build, String libs[]) throws IOException, InterruptedException
-    {
-        ArdLibraryMgr libmgr=new ArdLibraryMgr(apath);
-        for (String lib : libs) {
-            libmgr.addLocalLibrary(lib);
-        }
-        compile(path, device, build, libmgr);
-    }
 
-    public void compile(String path, String device, String build, ArdLibraryMgr libs) throws IOException, InterruptedException
+    public String compile(String path, String device, String build, String userPath) throws IOException, InterruptedException
     {
-        File fino=new File(path);
-        compileCode(readFile(fino), path, device, build, libs);
-    }
-    
-    public void compileCode(String code, String path, String device, String build) throws IOException, InterruptedException
-    {
-        compileCode(code, path, device, build, new ArdLibraryMgr(apath));
-    }    
-    
-    public void compileCode(String code, String path, String device, String build, ArdLibraryMgr libs) throws IOException, InterruptedException
-    {
-        ArdDevice d=devices.get(device);
-        File fino=new File(path);
-        String fname=fino.getName().split("\\.")[0];
-        File fbuild=new File(build);
-        fbuild.mkdirs();
-        
-        String ino_txt=convertIno2Cpp(code, fino, build+"/"+fname+".cpp");
-        
-        /************ define libraries ************************/
-        ArrayList<File> baseLibs=new ArrayList();
-        baseLibs.add(new File(apath+"/hardware/arduino/avr/cores/"+d.core));
-        baseLibs.add(new File(apath+"/hardware/arduino/avr/variants/"+d.variant));
-        
-        libs.addLibsFromIno(ino_txt);
-        ArrayList extLibs=libs.getSrcList();
-               
-        /************ compile archivo.ino ************************/
-        compileFile(new File(build+"/"+fname+".cpp"), d, fbuild, baseLibs, extLibs);
-        
-        /************ compile library ************************/
+        //bash /programming/proys/cloudino/server/Cloudino-web/target/Cloudino-web-1.0-SNAPSHOT/WEB-INF/compile.sh /Applications/Arduino.app/Contents/Java arduino:avr:uno /Users/javiersolis/Documents/Arduino/build /Users/javiersolis/Documents/Arduino /Applications/Arduino.app/Contents/Java/examples/01.Basics/Blink/Blink.ino
+
+        StringBuilder ret=new StringBuilder();
+        //ArdDevice dev=getDevices().get(device);
+        //System.out.println("dev:"+dev.board+"->"+dev.core+"->"+dev.cpu+"->"+dev.key+"->"+dev.mcu+"->"+dev.name+"->"+dev.sname+"->"+dev.variant);
+        String txt="bash "+DataMgr.getApplicationPath()+"/WEB-INF/compile.sh "+apath+" arduino:avr:"+device+" "+build+" "+userPath+" "+path;
+        Process p=Runtime.getRuntime().exec(txt);
+        InputStream in=p.getInputStream();
+        InputStream err=p.getErrorStream();
+        int x=p.waitFor();
+        if(err.available()>0)
         {
-            Iterator<File> it=extLibs.iterator();
-            while (it.hasNext()) {
-                File lib=it.next();
-                compileLibrary(lib, d, new File(fbuild,lib.getName().equals("src")?lib.getParentFile().getName():lib.getName()), baseLibs, extLibs);
-            } 
-            it=baseLibs.iterator();
-            while (it.hasNext()) {
-                File lib=it.next();
-                compileLibrary(lib, d, new File(fbuild,lib.getName().equals("src")?lib.getParentFile().getName():lib.getName()), baseLibs, new ArrayList());
-            }
-        }
-        
-        /************ archive library ************************/
+            byte r[]=new byte[err.available()];
+            err.read(r);
+            ret.append(new String(r));
+        }  
+        if(in.available()>0)
         {
-            Iterator<File> it=extLibs.iterator();
-            while (it.hasNext()) {
-                File lib=it.next();
-                archiveLibrary(lib, d, fbuild, new File(fbuild,lib.getName().equals("src")?lib.getParentFile().getName():lib.getName()));
-            } 
-            it=baseLibs.iterator();
-            while (it.hasNext()) {
-                File lib=it.next();
-                archiveLibrary(lib, d, fbuild, new File(fbuild,lib.getName().equals("src")?lib.getParentFile().getName():lib.getName()));
-            }  
-        }
-
-        makeElf(fname, d, fbuild, baseLibs, extLibs);
-        String exec;
-        //exec=apath+gcc+" -w -Os -Wl,--gc-sections -mmcu="+d.mcu+" -o "+build+"/"+fname+".cpp.elf "+build+"/"+fname+".cpp.o "+build+"/arduino.a -L"+build+" -lm";
-        //exec(exec);
-        exec=apath+ocpy+" -O ihex -j .eeprom --set-section-flags=.eeprom=alloc,load --no-change-warnings --change-section-lma .eeprom=0 "+build+"/"+fname+".cpp.elf "+build+"/"+fname+".cpp.eep";
-        exec(exec);
-        exec=apath+ocpy+" -O ihex -R .eeprom "+build+"/"+fname+".cpp.elf "+build+"/"+fname+".cpp.hex";
-        exec(exec);
-
+            byte r[]=new byte[in.available()];
+            in.read(r);
+            ret.append(new String(r));
+        }     
+        return ret.toString();
     }
 
     public HashMap<String, ArdDevice> getDevices() {
@@ -177,10 +103,10 @@ public class ArdCompiler
     {
         try
         {
+            DataMgr.createInstance("/programming/proys/cloudino/server/Cloudino-web/target/Cloudino-web-1.0-SNAPSHOT");
             ArdCompiler com=new ArdCompiler("/Applications/Arduino.app/Contents/Java");
-            //com.compile("/Applications/Arduino1.6.4.app/Contents/Java/examples/01.Basics/Blink/Blink.ino","pro.menu.cpu.8MHzatmega328","/Users/javiersolis/Documents/Arduino/build");
-            //com.compile("/Applications/Arduino1.6.4.app/Contents/Java/libraries/Servo/examples/Knob/Knob.ino","uno","/Users/javiersolis/Documents/Arduino/build");
-            com.compile("/opt/cloudino/bor/src/Blink.ino","uno");
+            String ret=com.compile("/Applications/Arduino.app/Contents/Java/examples/01.Basics/Blink/Blink.ino","uno","/Users/javiersolis/Documents/Arduino/build","/Users/javiersolis/Documents/Arduino");
+            System.out.println("ret:"+ret);
         }catch(Exception e)
         {
             e.printStackTrace();
@@ -219,26 +145,6 @@ public class ArdCompiler
         odevices.addAll(devices.values());
     }
     
-    private String convertIno2Cpp(String code, File fino,String file) throws IOException
-    {
-        StringBuilder ret=new StringBuilder();
-        FileOutputStream out=new FileOutputStream(file);
-        out.write((
-            "#include \"Arduino.h\"\n" +
-            "void setup();\n" +
-            "void loop();\n" +
-            "#line 1 \""+fino.getName()+"\"\n"
-            ).getBytes());  
-        out.write(code.getBytes("utf8"));
-        ret.append(code);
-        return ret.toString();        
-    }    
-    
-    private String convertIno2Cpp(File fino, String file) throws IOException
-    {        
-        return convertIno2Cpp(readFile(fino), fino, file);
-    }   
-    
     private String readFile(File fino)throws IOException
     {
         StringBuilder ret=new StringBuilder();
@@ -250,21 +156,6 @@ public class ArdCompiler
             len = in.read(buffer);
         }
         return ret.toString();
-    }
-    
-    private int exec(String exec)throws IOException, InterruptedException
-    {
-        System.out.println(exec);
-        Process p=Runtime.getRuntime().exec(exec);
-        InputStream err=p.getErrorStream();
-        int x=p.waitFor();
-        if(err.available()>0)
-        {
-            byte r[]=new byte[err.available()];
-            err.read(r);
-            throw new RuntimeException(new String(r));
-        }
-        return x;
     }
     
     private static FilenameFilter CFILTER=(File dir, String name) -> {
@@ -283,123 +174,7 @@ public class ArdCompiler
     
     private static final FilenameFilter OAFILTER=(File dir, String name) -> {
         return name.endsWith(".o")||name.endsWith(".a");
-    };     
-    
-    private void compileFile(File file, ArdDevice d, File build, ArrayList<File> baseLibs, ArrayList<File> extLibs) throws IOException, InterruptedException
-    {
-        if(!build.exists())build.mkdirs();
-        
-        String exec;
-        if(file.getName().endsWith(".c"))
-        {
-            exec=apath+gcc+" -c -g -Os -w -ffunction-sections -fdata-sections -MMD -mmcu="+d.mcu+" -DF_CPU="+d.cpu+" -DARDUINO=10604 -DARDUINO_"+d.board+" -DARDUINO_ARCH_AVR";
-        }else
-        {
-            exec=apath+gpp+" -c -g -Os -w -fno-exceptions -ffunction-sections -fdata-sections -fno-threadsafe-statics -MMD -mmcu="+d.mcu+" -DF_CPU="+d.cpu+" -DARDUINO=10604 -DARDUINO_"+d.board+" -DARDUINO_ARCH_AVR";
-        }
-        Iterator<File> it=baseLibs.iterator();
-        while (it.hasNext()) {
-            exec+=" -I"+it.next().getPath();
-        }
-        it=extLibs.iterator();
-        while (it.hasNext()) {
-            exec+=" -I"+it.next().getPath();
-        }            
-        exec+=" "+file.getPath()+" -o "+build.getPath()+"/"+file.getName()+".o";
-        exec(exec);
-    }
-    
-    private void compileLibrary(File lib, ArdDevice d, File build, ArrayList<File> baseLibs, ArrayList<File> extLibs) throws IOException, InterruptedException
-    {
-        if(lib.isDirectory())
-        {
-            //************ Compile ******************
-            File files[]=lib.listFiles(CFILTER);
-            for (File file : files) {
-                compileFile(file, d, build, baseLibs, extLibs);
-            }
-            files=lib.listFiles(CPPFILTER);
-            for (File file : files) {
-                compileFile(file, d, build, baseLibs, extLibs);
-            }      
-            files=lib.listFiles(DIRFILTER);
-            for (File subDir : files) {
-                compileLibrary(subDir, d, new File(build,subDir.getName()), baseLibs, extLibs);
-            }          
-        }        
-    }    
-
-    private void archiveLibrary(File lib, ArdDevice d, File build, File lib_build) throws IOException, InterruptedException
-    {
-        String exec;
-        File files[];
-        if(lib_build.isDirectory())
-        {
-            //************ Archive ******************
-            files=lib_build.listFiles(OFILTER);
-            for (File file : files) {
-                exec=apath+ar+" rcs "+build.getPath()+"/"+((lib.getName().endsWith("src"))?lib.getParentFile().getName():lib.getName())+".a "+file.getPath();
-                //exec=apath+ar+" rcs "+build.getPath()+"/core.a "+file.getPath();
-                exec(exec);                
-            }
-            
-            files=lib_build.listFiles(DIRFILTER);
-            for (File subDir : files) {
-                archiveLibrary(lib, d, build,subDir);
-            }            
-        }        
-    }
-    
-    private void getCompiledLibraryFiles(File lib_build, ArrayList<File> ret)
-    {
-        File[] files=lib_build.listFiles(OFILTER);
-        if(files!=null)
-        {
-            ret.addAll(Arrays.asList(files));
-        }
-        
-        files=lib_build.listFiles(DIRFILTER);
-        if(files!=null)
-        {
-            for (File subDir : files) {
-                getCompiledLibraryFiles(subDir,ret);
-            }    
-        }
-    }
-    
-    private void makeElf(String fname, ArdDevice d, File build, ArrayList<File> baseLibs, ArrayList<File> extLibs) throws IOException, InterruptedException
-    {
-        String exec=apath+gcc+" -w -Os -Wl,--gc-sections -mmcu="+d.mcu+" -o "+build+"/"+fname+".cpp.elf "+build+"/"+fname+".cpp.o";
-
-        //TODO:revisar porque no se puede utilizar una archive en ligar de archivo por archivo para externas
-        Iterator<File> it=extLibs.iterator();
-        while (it.hasNext()) {
-            File tmp=it.next();
-            File lib=new File(build,(tmp.getName().equals("src")?tmp.getParentFile().getName():tmp.getName()));
-            ArrayList<File> f=new ArrayList();
-            getCompiledLibraryFiles(lib, f);
-            
-            Iterator<File> it2=f.iterator();
-            while (it2.hasNext()) {
-                File file=it2.next();
-                exec+=" "+file.getPath();
-            }
-        }
-//        Iterator<File> it=extLibs.iterator();
-//        while (it.hasNext()) {
-//            File tmp=it.next();
-//            File file=new File(build,(tmp.getName().equals("src")?tmp.getParentFile().getName():tmp.getName())+".a");
-//            if(file.exists())exec+=" "+file.getPath();
-//        }
-        it=baseLibs.iterator();
-        while (it.hasNext()) {
-            File tmp=it.next();
-            File file=new File(build,(tmp.getName().equals("src")?tmp.getParentFile().getName():tmp.getName())+".a");
-            if(file.exists())exec+=" "+file.getPath();
-        }
-
-        exec+=" -L"+build+" -lm";
-        exec(exec);        
-    }
+    };
+   
    
 }

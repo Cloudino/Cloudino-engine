@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package io.cloudino.compiler;
+package io.cloudino.compiler_;
 
 import java.io.File;
 import java.util.ArrayList;

@@ -243,10 +243,10 @@ public class Device
             int speed=57600;
             if(getData()!=null)
             {
-                io.cloudino.compiler.ArdCompiler cmp=io.cloudino.compiler.ArdCompiler.getInstance();
+                io.cloudino.compiler_.ArdCompiler cmp=io.cloudino.compiler_.ArdCompiler.getInstance();
                 String type=getData().getString("type");
                 System.out.println("type:"+type);
-                io.cloudino.compiler.ArdDevice dvc=cmp.getDevices().get(type);
+                io.cloudino.compiler_.ArdDevice dvc=cmp.getDevices().get(type);
                 System.out.println("dvc:"+dvc);
                 if(dvc!=null)speed=dvc.speed;
             }
