@@ -3,6 +3,7 @@
 eng.config={
     devicePort:9595,
     arduinoPath:"/Applications/Arduino.app/Contents/Java",
+    arduinoLib:"/Applications/Arduino.app/Contents/Java",
     usersWorkPath:"/cloudino/users",
 };
 

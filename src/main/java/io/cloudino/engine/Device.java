@@ -87,7 +87,7 @@ public class Device
         String myPassword = "cloudino";
         //TODO:registrar Token
         String myToken = "25de509de97a9efafaee322eefdb6f051d84580d67830849e350e72ff230b66c";
-        if(!"softjei@gmail.com".equals(data.getString("email")))
+        if(!"_suri:Cloudino:User:55e0d655e4b0cb620e1910e5".equals(data.getString("user")))
         {
             return;
         }

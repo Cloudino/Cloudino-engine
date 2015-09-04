@@ -20,6 +20,7 @@ import java.util.Properties;
 import java.util.TreeSet;
 import org.semanticwb.datamanager.DataMgr;
 import org.semanticwb.datamanager.SWBScriptEngine;
+import org.semanticwb.datamanager.script.ScriptObject;
 
 /**
  *
@@ -28,6 +29,7 @@ import org.semanticwb.datamanager.SWBScriptEngine;
 public class ArdCompiler 
 {
     private String apath=null;
+    private String alib=null;
     private final Properties props=new Properties();
     private HashMap<String,ArdDevice> devices;
     private TreeSet<ArdDevice> odevices;
@@ -45,7 +47,8 @@ public class ArdCompiler
                     try
                     {
                         SWBScriptEngine engine=DataMgr.getUserScriptEngine("/cloudino.js",null);
-                        instance=new ArdCompiler(engine.getScriptObject().get("config").getString("arduinoPath"));
+                        ScriptObject config=engine.getScriptObject().get("config");
+                        instance=new ArdCompiler(config.getString("arduinoPath"),config.getString("arduinoLib"));
                     }catch(Exception e)
                     {
                         e.printStackTrace();
@@ -57,9 +60,10 @@ public class ArdCompiler
     }
     
 
-    public ArdCompiler(String arduino_path) throws IOException
+    public ArdCompiler(String arduino_path, String arduino_lib) throws IOException
     {
         this.apath=arduino_path;
+        this.alib=arduino_lib;
         init();
     }
 
@@ -70,7 +74,7 @@ public class ArdCompiler
         StringBuilder ret=new StringBuilder();
         //ArdDevice dev=getDevices().get(device);
         //System.out.println("dev:"+dev.board+"->"+dev.core+"->"+dev.cpu+"->"+dev.key+"->"+dev.mcu+"->"+dev.name+"->"+dev.sname+"->"+dev.variant);
-        String txt="bash "+DataMgr.getApplicationPath()+"/WEB-INF/compile.sh "+apath+" arduino:avr:"+device+" "+build+" "+userPath+" "+path;
+        String txt="bash "+DataMgr.getApplicationPath()+"/WEB-INF/compile.sh "+apath+" "+alib+" arduino:avr:"+device+" "+build+" "+userPath+" "+path;
         Process p=Runtime.getRuntime().exec(txt);
         InputStream in=p.getInputStream();
         InputStream err=p.getErrorStream();
@@ -104,7 +108,7 @@ public class ArdCompiler
         try
         {
             DataMgr.createInstance("/programming/proys/cloudino/server/Cloudino-web/target/Cloudino-web-1.0-SNAPSHOT");
-            ArdCompiler com=new ArdCompiler("/Applications/Arduino.app/Contents/Java");
+            ArdCompiler com=new ArdCompiler("/Applications/Arduino.app/Contents/Java","/Applications/Arduino.app/Contents/Java");
             String ret=com.compile("/Applications/Arduino.app/Contents/Java/examples/01.Basics/Blink/Blink.ino","uno","/Users/javiersolis/Documents/Arduino/build","/Users/javiersolis/Documents/Arduino");
             System.out.println("ret:"+ret);
         }catch(Exception e)
