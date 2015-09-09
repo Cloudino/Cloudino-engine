@@ -5,6 +5,13 @@ eng.config={
     arduinoPath:"/Applications/Arduino.app/Contents/Java",
     arduinoLib:"/Applications/Arduino.app/Contents/Java",
     usersWorkPath:"/cloudino/users",
+    smtptype: "ssl", //none, ssl, tsl
+    smtpHost: "smtp.gmail.com",
+    smtpPort:465,
+    smtpUser: "cloudinomail@gmail.com",
+    smtpPassword: "Cl0ud1n0",
+    fromEmail: "cloudinomail@gmail.com",
+    fromName: "Cloudino Admin",
 };
 
 //******* DataStores ***************

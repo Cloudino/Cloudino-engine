@@ -1,11 +1,18 @@
 package io.cloudino.servlet.router;
 
 import com.github.mustachejava.Mustache;
+import io.cloudino.utils.MailSender;
+import io.cloudino.utils.TokenGenerator;
+import io.cloudino.utils.Utils;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.mail.Address;
+import javax.mail.internet.InternetAddress;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -49,24 +56,40 @@ public class RegisterHandler implements RouteHandler {
                             obj.put("email", email);
                             obj.put("password", password);
                             obj.put("registeredAt", ZonedDateTime.now().toString());
-                            ds.addObj(obj);
-                            //engine.close();
-                            response.sendRedirect(request.getContextPath() + "/panel");
+                            obj.put("confirmed", "false");
+                            Address userAddr = new InternetAddress(email, fullname, "utf-8");
+                            DataObject dao = ds.addObj(obj); 
+                            dao = dao.getDataObject("response").getDataObject("data"); System.out.println("dao:"+dao);
+                            String content = MessageFormat.format(Utils.textInputStreamToString(
+                                    LoginHandler.class.getResourceAsStream("/templates/confirmationMail.template"),"utf-8"),
+                                    fullname, TokenGenerator.nextTokenByUserId(dao.getNumId()), email); 
+                            MailSender.send(userAddr, "Cloudino confirmation email", content);
+                            logger.log(Level.FINE, "Register and send mail to: {0}", email);
+                            Map<String, Object> register = new HashMap<>();
+                            Map<String, Object> scope = new HashMap<>();
+                            scope.put("ctx", request.getContextPath());
+                            register.put("confirm", scope);
+                            response.setCharacterEncoding("utf-8");
+                            mustache.execute(response.getWriter(), register);
                         }
                     }
                 } else {
+                    Map<String, Object> register = new HashMap<>();
                     Map<String, Object> scope = new HashMap<>();
                     scope.put("error", "Email was already registered");
-            scope.put("ctx", request.getContextPath());
-            response.setCharacterEncoding("utf-8");
-            mustache.execute(response.getWriter(), scope);
+                    scope.put("ctx", request.getContextPath());
+                    register.put("register", scope);
+                    response.setCharacterEncoding("utf-8");
+                    mustache.execute(response.getWriter(), register);
                 }
             }
         } else {
+            Map<String, Object> register = new HashMap<>();
             Map<String, Object> scope = new HashMap<>();
             scope.put("ctx", request.getContextPath());
+            register.put("register", scope);
             response.setCharacterEncoding("utf-8");
-            mustache.execute(response.getWriter(), scope);
+            mustache.execute(response.getWriter(), register);
         }
     }
 

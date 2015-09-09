@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package io.cloudino.utils;
 
 import java.util.HashMap;
@@ -31,7 +25,7 @@ public class ParamsMgr
     
     public String setDataMap(HashMap<String,String> map)
     {
-        String key=TokenGenerator.nextToken();
+        String key=TokenGenerator.nextShortToken();
         params.put(key, map);
         return key;
     }
@@ -43,7 +37,7 @@ public class ParamsMgr
      */
     public String setDataValues(String ...data)
     {
-        String key=TokenGenerator.nextToken();
+        String key=TokenGenerator.nextShortToken();
         HashMap map=new HashMap();
         if(data.length%2==0)
         {
@@ -61,7 +55,7 @@ public class ParamsMgr
     
     public String setDataValue(String value)
     {
-        String key=TokenGenerator.nextToken();
+        String key=TokenGenerator.nextShortToken();
         HashMap<String,String> map=new HashMap();
         map.put("_DEF_", value);
         params.put(key, map);

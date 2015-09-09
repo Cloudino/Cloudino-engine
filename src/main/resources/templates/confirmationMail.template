@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Cloudino | Confirmation</title>
+  </head>
+  <body>
+    <h1>Cloudino email confirmation</h1>
+    <p>{0}, to activate your account we need that you enter to the next link:</p>
+    <p><a href="http://cloudino.io/confirm/{1}?mail={2}">Confirmation link</a></p>
+    <p>or copy and paste the next link to your favorite browser: <br> http://cloudino.io/confirm/{1}?mail={2} </p>
+  </body>
+</html>

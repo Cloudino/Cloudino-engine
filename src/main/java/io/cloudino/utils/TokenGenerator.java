@@ -25,6 +25,12 @@ public class TokenGenerator {
         generator.nextBytes(data);
         return (new BigInteger(1, data)).toString(Character.MAX_RADIX);
     }
+    
+    public static String nextShortToken() {
+        byte[] data = new byte[10];
+        generator.nextBytes(data);
+        return (new BigInteger(1, data)).toString(Character.MAX_RADIX);
+    }
 
     public static String nextTokenByUserId(String userId) {
         BigInteger userInt = new BigInteger(userId, 16);

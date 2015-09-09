@@ -6,9 +6,12 @@
 
 package io.cloudino.utils;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -75,4 +78,10 @@ public class Utils {
             out.flush();
             out.close();
         }
+        
+        public static String textInputStreamToString(final InputStream is, final String charset) throws IOException {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(is, charset))) {
+            return br.lines().collect(Collectors.joining(System.lineSeparator()));
+        }
+    }
 }
