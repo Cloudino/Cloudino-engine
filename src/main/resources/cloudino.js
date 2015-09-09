@@ -3,13 +3,15 @@
 eng.config={
     devicePort:9595,
     arduinoPath:"/Applications/Arduino.app/Contents/Java",
+    //arduinoPath:"/Users/serch/Downloads/Arduino.app/Contents/Java",
     arduinoLib:"/Applications/Arduino.app/Contents/Java",
+    //arduinoLib:"/Users/serch/Downloads/Arduino.app/Contents/Java",
     usersWorkPath:"/cloudino/users",
     smtptype: "ssl", //none, ssl, tsl
     smtpHost: "smtp.gmail.com",
     smtpPort:465,
     smtpUser: "cloudinomail@gmail.com",
-    smtpPassword: "Cl0ud1n0",
+    smtpPassword: "********",
     fromEmail: "cloudinomail@gmail.com",
     fromName: "Cloudino Admin",
 };
