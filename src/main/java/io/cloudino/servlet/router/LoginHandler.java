@@ -37,6 +37,7 @@ public class LoginHandler implements RouteHandler {
                 r.put("data", data);
                 data.put("email", email);
                 data.put("password", password);
+                data.put("active", "true");
                 DataObject ret = ds.fetch(r);
                 //engine.close();
 

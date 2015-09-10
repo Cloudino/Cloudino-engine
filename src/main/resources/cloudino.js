@@ -38,6 +38,7 @@ eng.routes={
         { routePath: "profile", routeHandler: "io.cloudino.servlet.router.ProfileHandler", isRestricted: "true", template: "profile" },
         { routePath: "photo", routeHandler: "io.cloudino.servlet.router.PhotoHandler", isRestricted: "false" },
         { routePath: "validator/*", routeHandler: "io.cloudino.servlet.router.ValidatorHandler", isRestricted: "false" },
+        { routePath: "confirm/*", routeHandler: "io.cloudino.servlet.router.ConfirmationHandler", isRestricted: "false", template: "confirm" },
     ],
 };
 
