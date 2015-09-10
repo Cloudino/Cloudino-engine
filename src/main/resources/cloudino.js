@@ -3,16 +3,16 @@
 eng.config={
     devicePort:9595,
     arduinoPath:"/Applications/Arduino.app/Contents/Java",
-    //arduinoPath:"/Users/serch/Downloads/Arduino.app/Contents/Java",
     arduinoLib:"/Applications/Arduino.app/Contents/Java",
-    //arduinoLib:"/Users/serch/Downloads/Arduino.app/Contents/Java",
     usersWorkPath:"/cloudino/users",
-    smtptype: "ssl", //none, ssl, tsl
-    smtpHost: "smtp.gmail.com",
+    smtptransport: "smtps", //smtp, smtps
+    ssltrust: "*",
+    starttls: "true",
+    smtpHost: "mail.cloudino.sergiomartinez.mx",
     smtpPort:465,
-    smtpUser: "cloudinomail@gmail.com",
+    smtpUser: "cloudino",
     smtpPassword: "********",
-    fromEmail: "cloudinomail@gmail.com",
+    fromEmail: "cloudino@mail.cloudino.sergiomartinez.mx",
     fromName: "Cloudino Admin",
 };
 
@@ -37,6 +37,7 @@ eng.routes={
         { routePath: "panel/*", jspMapTo: "/work/panel/", isRestricted: "true"},
         { routePath: "profile", routeHandler: "io.cloudino.servlet.router.ProfileHandler", isRestricted: "true", template: "profile" },
         { routePath: "photo", routeHandler: "io.cloudino.servlet.router.PhotoHandler", isRestricted: "false" },
+        { routePath: "validator/*", routeHandler: "io.cloudino.servlet.router.ValidatorHandler", isRestricted: "false" },
     ],
 };
 
