@@ -34,7 +34,7 @@ public class RegisterHandler implements RouteHandler {
     private final SWBDataSource ds = engine.getDataSource("User");
 
     @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+    public void handle(HttpServletRequest request, HttpServletResponse response, DataObject user) throws IOException, ServletException {
         if (request.getMethod().equals("POST")) {
             String fullname = request.getParameter("fullname");
             String email = request.getParameter("email");

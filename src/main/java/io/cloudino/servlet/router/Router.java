@@ -62,7 +62,7 @@ public class Router {
                     }
 
                     @Override
-                    public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+                    public void handle(HttpServletRequest request, HttpServletResponse response, DataObject user) throws IOException, ServletException {
                         request.getServletContext().getRequestDispatcher(jspRoute).forward(request, response);
                     }
                 };
@@ -80,7 +80,7 @@ public class Router {
                     }
 
                     @Override
-                    public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+                    public void handle(HttpServletRequest request, HttpServletResponse response, DataObject user) throws IOException, ServletException {
                         String name = request.getRequestURI();
                         name = mapTo + name.substring(name.lastIndexOf("/") + 1) + ".jsp";
                         logger.fine("name: " + name);
@@ -92,7 +92,7 @@ public class Router {
                             name = name.substring(0, name.indexOf("/"));
                             if (routes.containsKey(name)) {
                                 logger.fine("encontré handler de "+name);
-                                routes.get(name).handle(request, response);
+                                routes.get(name).handle(request, response, user);
                             } else {
                                 name = request.getRequestURI();
                                 name = mapTo + name.substring(name.lastIndexOf("/") + 1) + "index.jsp";

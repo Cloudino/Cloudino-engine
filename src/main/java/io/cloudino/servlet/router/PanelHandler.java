@@ -19,8 +19,7 @@ public class PanelHandler implements RouteHandler {
     private static final Logger logger = Logger.getLogger("i.c.s.r.PanelHandler");
     
     @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        DataObject user = (DataObject)request.getSession().getAttribute("_USER_");
+    public void handle(HttpServletRequest request, HttpServletResponse response, DataObject user) throws IOException, ServletException {
         Map<String, Object> scope = new HashMap<>();
             scope.put("ctx", request.getContextPath());
             scope.put("user", user);

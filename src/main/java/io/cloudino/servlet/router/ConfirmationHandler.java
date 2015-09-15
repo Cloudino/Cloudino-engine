@@ -31,7 +31,7 @@ public class ConfirmationHandler implements RouteHandler {
     }
 
     @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+    public void handle(HttpServletRequest request, HttpServletResponse response, DataObject user) throws IOException, ServletException {
         String email = request.getParameter("mail");
         String token = request.getServletPath();
         token = token.substring(token.lastIndexOf("/")+1);
