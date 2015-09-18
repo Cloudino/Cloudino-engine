@@ -26,6 +26,9 @@ public class ProfileHandler implements RouteHandler {
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, DataObject user) throws IOException, ServletException {
+        System.out.println("profile called!");
+        System.out.println("request method :"+request.getMethod());
+        System.out.println("request type   :"+request.getContentType());
         Map<String, Object> scope = new HashMap<>();
         scope.put("ctx", request.getContextPath());
         scope.put("user", user);

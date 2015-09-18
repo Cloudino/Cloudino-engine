@@ -211,30 +211,39 @@
                     </ul>
                   </div><!-- /.tab-pane -->
                   <div class="active tab-pane" id="settings">
-                    <form class="form-horizontal">
+                    <form class="form-horizontal" method="post" action="{{ctx}}/profile" data-submit="ajax">
                       <div class="form-group">
                         <label for="inputName" class="col-sm-2 control-label">Full Name</label>
                         <div class="col-sm-10">
                           <input type="email" class="form-control" id="inputName" placeholder="Name" value="{{user.fullname}}">
                         </div>
                       </div>
-                      <div class="form-group">
-                        <label for="inputPhoto" class="col-sm-2 control-label">My photo</label>
-                      <div class="col-sm-10">
-                        <input type="file" id="inputPhoto" class="form-control" >
-                        <p class="help-block">jpg with 160 by 160 pixels.</p>
-                      </div>
-                    </div>
+                      
                       <div class="form-group">
                         <div class="col-sm-offset-2 col-sm-10">
                           <button type="submit" class="btn btn-danger">Submit</button>
                         </div>
                       </div>
                     </form>
+                    <form class="form-horizontal">
+                    <div class="form-group">
+                        <label for="inputPhoto" class="col-sm-2 control-label">My photo</label>
+                      <div class="col-sm-10">
+                        <input type="file" id="inputPhoto" class="file">
+                        <p class="help-block">jpg with 160 by 160 pixels.</p>
+                      </div>
+                    </div>
+                    </form>
                   </div><!-- /.tab-pane -->
                 </div><!-- /.tab-content -->
               </div><!-- /.nav-tabs-custom -->
             </div><!-- /.col -->
           </div><!-- /.row -->
-
+<script type="text/javascript">
+$("#inputPhoto").fileinput({
+    maxFileCount:1,
+    uploadUrl: "{{ctx}}/profile",
+    dropZoneEnabled: false,
+});
+</script>
         </section><!-- /.content -->
