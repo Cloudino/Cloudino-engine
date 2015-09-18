@@ -31,7 +31,7 @@ eng.routes={
         { routePath: "login", routeHandler: "io.cloudino.servlet.router.LoginHandler", isRestricted: "false", template: "login" },
         { routePath: "register", routeHandler: "io.cloudino.servlet.router.RegisterHandler", isRestricted: "false", template: "register" },
         //{ routePath: "panel", routeHandler: "io.cloudino.servlet.router.PanelHandler", isRestricted: "true", template: "panel" },
-        { routePath: "", routeHandler: "io.cloudino.servlet.router.ROOTHandler", isRestricted: "false", template: "index"},
+        { routePath: "", forwardTo: "/index.jsp", isRestricted: "false"},
         { routePath: "work", isRestricted: "true"},
         { routePath: "panel", forwardTo: "/work/panel/index.jsp", isRestricted: "true" },
         { routePath: "panel/*", jspMapTo: "/work/panel/", isRestricted: "true"},
