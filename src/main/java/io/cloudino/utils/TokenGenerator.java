@@ -27,7 +27,7 @@ public class TokenGenerator {
     }
     
     public static String nextShortToken() {
-        byte[] data = new byte[10];
+        byte[] data = new byte[6];
         generator.nextBytes(data);
         return (new BigInteger(1, data)).toString(Character.MAX_RADIX);
     }

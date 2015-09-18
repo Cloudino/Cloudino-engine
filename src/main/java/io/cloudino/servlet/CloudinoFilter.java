@@ -52,7 +52,7 @@ public class CloudinoFilter implements Filter {
         if (null==rh) { 
             chain.doFilter(request, response);
         } else {
-            rh.handle(hreq, (HttpServletResponse)response);
+            rh.handle(hreq, (HttpServletResponse)response, dobj);
         }
 //        System.out.println("");
     }

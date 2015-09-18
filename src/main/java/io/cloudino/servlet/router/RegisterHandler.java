@@ -30,12 +30,11 @@ public class RegisterHandler implements RouteHandler {
 
     private Mustache mustache;
     private static final Logger logger = Logger.getLogger("i.c.s.r.RegisterHandler");
+    private final SWBScriptEngine engine = DataMgr.getUserScriptEngine("/cloudino.js", null);
+    private final SWBDataSource ds = engine.getDataSource("User");
 
     @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        SWBScriptEngine engine = DataMgr.getUserScriptEngine("/cloudino.js", null);
-        SWBDataSource ds = engine.getDataSource("User");
-
+    public void handle(HttpServletRequest request, HttpServletResponse response, DataObject user) throws IOException, ServletException {
         if (request.getMethod().equals("POST")) {
             String fullname = request.getParameter("fullname");
             String email = request.getParameter("email");
@@ -57,13 +56,14 @@ public class RegisterHandler implements RouteHandler {
                             obj.put("password", password);
                             obj.put("registeredAt", ZonedDateTime.now().toString());
                             obj.put("confirmed", "false");
+                            obj.put("emailSent", "false");
                             Address userAddr = new InternetAddress(email, fullname, "utf-8");
                             DataObject dao = ds.addObj(obj); 
                             dao = dao.getDataObject("response").getDataObject("data"); System.out.println("dao:"+dao);
                             String content = MessageFormat.format(Utils.textInputStreamToString(
                                     LoginHandler.class.getResourceAsStream("/templates/confirmationMail.template"),"utf-8"),
                                     fullname, TokenGenerator.nextTokenByUserId(dao.getNumId()), email); 
-                            MailSender.send(userAddr, "Cloudino confirmation email", content);
+                            MailSender.send(userAddr, "Cloudino confirmation email", content, dao.getNumId());
                             logger.log(Level.FINE, "Register and send mail to: {0}", email);
                             Map<String, Object> register = new HashMap<>();
                             Map<String, Object> scope = new HashMap<>();

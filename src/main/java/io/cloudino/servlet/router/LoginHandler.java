@@ -24,7 +24,7 @@ public class LoginHandler implements RouteHandler {
     private static final Logger logger = Logger.getLogger("i.c.s.r.LoginHandler");
 
     @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+    public void handle(HttpServletRequest request, HttpServletResponse response, DataObject pUser) throws IOException, ServletException {
         SWBScriptEngine engine = DataMgr.getUserScriptEngine("/cloudino.js", null);
         SWBDataSource ds = engine.getDataSource("User");
         
@@ -37,6 +37,7 @@ public class LoginHandler implements RouteHandler {
                 r.put("data", data);
                 data.put("email", email);
                 data.put("password", password);
+                data.put("active", "true");
                 DataObject ret = ds.fetch(r);
                 //engine.close();
 

@@ -5,6 +5,7 @@ import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.semanticwb.datamanager.DataObject;
 
 /**
  *
@@ -12,5 +13,5 @@ import javax.servlet.http.HttpServletResponse;
  */
 public interface RouteHandler {
     void config(Mustache mustache);
-    void handle(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException;
+    void handle(HttpServletRequest request, HttpServletResponse response, DataObject user) throws IOException, ServletException;
 }

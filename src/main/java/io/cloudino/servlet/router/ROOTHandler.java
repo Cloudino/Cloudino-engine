@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.semanticwb.datamanager.DataObject;
 
 /**
  *
@@ -24,7 +25,7 @@ public class ROOTHandler implements RouteHandler {
     }
 
     @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+    public void handle(HttpServletRequest request, HttpServletResponse response, DataObject user) throws IOException, ServletException {
         Map<String, Object> scope = new HashMap<>();
         scope.put("ctx", request.getContextPath());
         response.setCharacterEncoding("utf-8");

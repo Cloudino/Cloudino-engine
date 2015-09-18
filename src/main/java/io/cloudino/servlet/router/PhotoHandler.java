@@ -8,6 +8,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.semanticwb.datamanager.DataMgr;
+import org.semanticwb.datamanager.DataObject;
 
 /**
  *
@@ -34,7 +35,7 @@ public class PhotoHandler implements RouteHandler {
     }
 
     @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+    public void handle(HttpServletRequest request, HttpServletResponse response, DataObject user) throws IOException, ServletException {
         response.setContentType("image/jpg");
         response.getOutputStream().write(defaultImage);
     }
