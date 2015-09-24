@@ -69,6 +69,7 @@ public class ArdCompiler
 
     public String compile(String path, String device, String build, String userPath) throws IOException, InterruptedException
     {
+        device=getVariant(device);
         //bash /programming/proys/cloudino/server/Cloudino-web/target/Cloudino-web-1.0-SNAPSHOT/WEB-INF/compile.sh /Applications/Arduino.app/Contents/Java arduino:avr:uno /Users/javiersolis/Documents/Arduino/build /Users/javiersolis/Documents/Arduino /Applications/Arduino.app/Contents/Java/examples/01.Basics/Blink/Blink.ino
 
         StringBuilder ret=new StringBuilder();
@@ -103,13 +104,27 @@ public class ArdCompiler
         return odevices.iterator();
     }
     
+    public String getVariant(String device)
+    {
+        //pro.menu.cpu.8MHzatmega328
+        String r[]=device.split("\\.");
+        String ret=r[0];
+        if(r.length>3 && r[1].equals("menu"))
+        {
+            ret+=":"+r[2]+"="+r[3];
+        }
+        //System.out.println("ret:"+ret);
+        return ret;
+    }
+    
     public static void main(String[] args) 
     {
         try
         {
             DataMgr.createInstance("/programming/proys/cloudino/server/Cloudino-web/target/Cloudino-web-1.0-SNAPSHOT");
             ArdCompiler com=new ArdCompiler("/Applications/Arduino.app/Contents/Java","/Applications/Arduino.app/Contents/Java");
-            String ret=com.compile("/Applications/Arduino.app/Contents/Java/examples/01.Basics/Blink/Blink.ino","uno","/Users/javiersolis/Documents/Arduino/build","/Users/javiersolis/Documents/Arduino");
+            //String ret=com.compile("/Applications/Arduino.app/Contents/Java/examples/01.Basics/Blink/Blink.ino","uno","/Users/javiersolis/Documents/Arduino/build","/Users/javiersolis/Documents/Arduino");
+            String ret=com.compile("/Applications/Arduino.app/Contents/Java/examples/01.Basics/Blink/Blink.ino","pro.menu.cpu.8MHzatmega328","/Users/javiersolis/Documents/Arduino/build","/Users/javiersolis/Documents/Arduino");
             System.out.println("ret:"+ret);
         }catch(Exception e)
         {

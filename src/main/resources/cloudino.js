@@ -70,11 +70,22 @@ eng.dataSources["Device"]={
     ],    
 };
 
-//******* DataSorices ************
-eng.dataSources["Datasource"]={
-    scls: "Datasource",
+//******* DataSet ************
+eng.dataSources["DataSet"]={
+    scls: "DataSet",
     modelid: "Cloudino",
     dataStore: "mongodb",    
+    fields:[
+        {name:"name",title:"Name",type:"string"},
+        {name:"user",title:"User",type:"string"},
+        {name:"fields",title:"Fields",type:"object", 
+            fields:[
+                {name:"name",title:"Name",type:"string"},
+                {name:"title",title:"Title",type:"string"},
+                {name:"type",title:"Type",type:"string"},
+            ]
+        },
+    ],      
 };
 
 eng.dataSources["Control"]={
