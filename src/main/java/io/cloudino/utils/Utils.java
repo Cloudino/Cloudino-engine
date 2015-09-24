@@ -79,9 +79,18 @@ public class Utils {
             out.close();
         }
         
+        /**
+         * Reads a Text InputStream into a String
+         * @param is InputStream to read from
+         * @param charset Charset name of the InputStream
+         * @return Generated String
+         * @throws IOException 
+         */
         public static String textInputStreamToString(final InputStream is, final String charset) throws IOException {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(is, charset))) {
             return br.lines().collect(Collectors.joining(System.lineSeparator()));
+            }
         }
-    }
+        
+        
 }
