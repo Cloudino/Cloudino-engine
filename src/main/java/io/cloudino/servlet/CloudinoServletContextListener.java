@@ -7,6 +7,8 @@ package io.cloudino.servlet;
 
 import io.cloudino.server.DeviceServer;
 import io.cloudino.servlet.router.Router;
+import io.cloudino.utils.FileUploadUtils;
+import java.io.File;
 import java.util.logging.Logger;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -24,6 +26,7 @@ public class CloudinoServletContextListener implements ServletContextListener {
         log.info("Starting Cloudino Portal");
         System.out.println("aplicacion web arrancada");
         DataMgr.createInstance(sce.getServletContext().getRealPath("/"));
+        FileUploadUtils.init((File)sce.getServletContext().getAttribute("javax.servlet.context.tempdir"));
         log.info("Cloudino DataMgr Started");
         
         SWBScriptEngine engine=DataMgr.getUserScriptEngine("/cloudino.js",null);

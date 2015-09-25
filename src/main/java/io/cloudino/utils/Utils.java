@@ -78,6 +78,7 @@ public class Utils {
     public static String textInputStreamToString(final InputStream is, final String charset) throws IOException {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(is, charset))) {
             return br.lines().collect(Collectors.joining(System.lineSeparator()));
+            }
         }
     }
         

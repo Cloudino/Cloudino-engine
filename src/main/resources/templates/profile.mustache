@@ -27,11 +27,36 @@
             <div class="col-md-9">
               <div class="nav-tabs-custom">
                 <ul class="nav nav-tabs">
+                  <li class="active"><a href="#settings" data-toggle="tab">Settings</a></li>
                   <li><a href="#activity" data-toggle="tab">Activity</a></li>
                   <li><a href="#timeline" data-toggle="tab">Timeline</a></li>
-                  <li class="active"><a href="#settings" data-toggle="tab">Settings</a></li>
                 </ul>
                 <div class="tab-content">
+                  <div class="active tab-pane" id="settings">
+                    <form class="form-horizontal" method="post" action="{{ctx}}/profile" data-submit="ajax">
+                      <div class="form-group">
+                        <label for="inputName" class="col-sm-2 control-label">Full Name</label>
+                        <div class="col-sm-10">
+                          <input type="email" class="form-control" id="inputName" placeholder="Name" value="{{user.fullname}}">
+                        </div>
+                      </div>
+                      
+                      <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                          <button type="submit" class="btn btn-danger">Submit</button>
+                        </div>
+                      </div>
+                    </form>
+                    <form class="form-horizontal">
+                    <div class="form-group">
+                        <label for="inputPhoto" class="col-sm-2 control-label">My photo</label>
+                      <div class="col-sm-10">
+                        <input type="file" id="inputPhoto" class="file">
+                        <p class="help-block">jpg with 160 by 160 pixels.</p>
+                      </div>
+                    </div>
+                    </form>
+                  </div><!-- /.tab-pane -->
                   <div class="tab-pane" id="activity">
                     <!-- Post -->
                     <div class="post">
@@ -209,31 +234,6 @@
                         <i class="fa fa-clock-o bg-gray"></i>
                       </li>
                     </ul>
-                  </div><!-- /.tab-pane -->
-                  <div class="active tab-pane" id="settings">
-                    <form class="form-horizontal" method="post" action="{{ctx}}/profile" data-submit="ajax">
-                      <div class="form-group">
-                        <label for="inputName" class="col-sm-2 control-label">Full Name</label>
-                        <div class="col-sm-10">
-                          <input type="email" class="form-control" id="inputName" placeholder="Name" value="{{user.fullname}}">
-                        </div>
-                      </div>
-                      
-                      <div class="form-group">
-                        <div class="col-sm-offset-2 col-sm-10">
-                          <button type="submit" class="btn btn-danger">Submit</button>
-                        </div>
-                      </div>
-                    </form>
-                    <form class="form-horizontal">
-                    <div class="form-group">
-                        <label for="inputPhoto" class="col-sm-2 control-label">My photo</label>
-                      <div class="col-sm-10">
-                        <input type="file" id="inputPhoto" class="file">
-                        <p class="help-block">jpg with 160 by 160 pixels.</p>
-                      </div>
-                    </div>
-                    </form>
                   </div><!-- /.tab-pane -->
                 </div><!-- /.tab-content -->
               </div><!-- /.nav-tabs-custom -->

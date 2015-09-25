@@ -1,6 +1,7 @@
 package io.cloudino.servlet.router;
 
 import com.github.mustachejava.Mustache;
+import io.cloudino.utils.FileUploadUtils;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,8 +28,25 @@ public class ProfileHandler implements RouteHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, DataObject user) throws IOException, ServletException {
         System.out.println("profile called!");
-        System.out.println("request method :"+request.getMethod());
-        System.out.println("request type   :"+request.getContentType());
+        System.out.println("request method :" + request.getMethod());
+        System.out.println("request type   :" + request.getContentType());
+        if (request.getMethod().equalsIgnoreCase("POST")) {
+            if (request.getContentType().startsWith("multipart/form-data")) {
+                Map<String, Object> scope = savePhoto(request, user);
+                scope.put("ctx", request.getContextPath());
+                scope.put("user", user);
+                //response.setCharacterEncoding("utf-8");
+                mustache.execute(response.getWriter(), scope);
+                return;
+            } else {
+                Map<String, Object> scope = saveData(request, user);
+                scope.put("ctx", request.getContextPath());
+                scope.put("user", user);
+                //response.setCharacterEncoding("utf-8");
+                mustache.execute(response.getWriter(), scope);
+                return;
+            }
+        }
         Map<String, Object> scope = new HashMap<>();
         scope.put("ctx", request.getContextPath());
         scope.put("user", user);
@@ -36,4 +54,18 @@ public class ProfileHandler implements RouteHandler {
         mustache.execute(response.getWriter(), scope);
     }
 
+    private Map<String, Object> savePhoto(HttpServletRequest request, DataObject user) {
+        Map<String, Object> scope = new HashMap<>();
+        if (FileUploadUtils.saveToOutputStream(request, null, "")) { //TODO - Aún falta el método para guardar la foto en MongoDB
+            scope.put("Message", "Photo Uploaded");
+        } else {
+            scope.put("Error", "We coudn't save your photo");
+        }
+        return scope;
+    }
+
+    private Map<String, Object> saveData(HttpServletRequest request, DataObject user) {
+        Map<String, Object> scope = new HashMap<>();
+        return scope;
+    }
 }

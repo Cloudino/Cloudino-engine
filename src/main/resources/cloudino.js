@@ -8,11 +8,11 @@ eng.config={
     smtptransport: "smtps", //smtp, smtps
     ssltrust: "*",
     starttls: "true",
-    smtpHost: "mail.cloudino.sergiomartinez.mx",
+    smtpHost: "smtp.gmail.com",
     smtpPort:465,
-    smtpUser: "cloudino",
+    smtpUser: "cloudinomail@gmail.com",
     smtpPassword: "********",
-    fromEmail: "cloudino@mail.cloudino.sergiomartinez.mx",
+    fromEmail: "cloudinomail@gmail.com",
     fromName: "Cloudino Admin",
 };
 
