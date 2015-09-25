@@ -58,7 +58,8 @@ public class Utils {
      * <p>
      * Si el flujo de entrada o el de salida es {@code null}.</p>
      */
-    public static void copyStream(InputStream in, OutputStream out, int bufferSize) throws IOException {
+    public static void copyStream(InputStream in, OutputStream out, int bufferSize) throws IOException 
+    {
         if (in == null) {
             throw new IOException("Input Stream null");
         }
@@ -78,7 +79,6 @@ public class Utils {
     public static String textInputStreamToString(final InputStream is, final String charset) throws IOException {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(is, charset))) {
             return br.lines().collect(Collectors.joining(System.lineSeparator()));
-            }
         }
     }
         
