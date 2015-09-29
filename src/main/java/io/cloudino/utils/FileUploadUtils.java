@@ -13,6 +13,8 @@ import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.semanticwb.datamanager.filestore.SWBFileObject;
+import org.semanticwb.datamanager.filestore.SWBFileSource;
 
 /**
  * Wrapper for Apache commons fileupload
@@ -135,6 +137,33 @@ public class FileUploadUtils {
             oFileItem.ifPresent(fi -> {
                 try {
                     fi.write(outputFile);
+                } catch (Exception ex) {
+                    logger.log(Level.FINE, "Error Writing to a file", ex);
+                }
+            });
+            return oFileItem.isPresent();
+        } catch (FileUploadException ioe) {
+            logger.log(Level.FINE, "Error Uploading a file form web", ioe);
+            return false;
+        }
+    }
+    
+    public static boolean saveToSWBFileSource(HttpServletRequest request, SWBFileSource file, String fileFieldName, String localName){
+        System.out.println("fileFeldName: "+fileFieldName);
+        System.out.println("localName: "+localName);
+        ServletFileUpload upload = new ServletFileUpload(factory);
+        upload.setSizeMax(file.getMaxSize());
+        try {
+            List<FileItem> items = upload.parseRequest(request);
+            Optional<FileItem> oFileItem = items
+                    .stream()
+                    .filter(
+                            fi -> fi.getFieldName().equalsIgnoreCase(fileFieldName))
+                    .findFirst();
+            System.out.println("found?:"+oFileItem.isPresent());
+            oFileItem.ifPresent(fi -> {
+                try {
+                    file.storeFile(new SWBFileObject(localName, fi.getContentType(), fi.getInputStream()));
                 } catch (Exception ex) {
                     logger.log(Level.FINE, "Error Writing to a file", ex);
                 }

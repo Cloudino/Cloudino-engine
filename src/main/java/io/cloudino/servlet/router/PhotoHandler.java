@@ -9,6 +9,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.semanticwb.datamanager.DataMgr;
 import org.semanticwb.datamanager.DataObject;
+import org.semanticwb.datamanager.SWBScriptEngine;
+import org.semanticwb.datamanager.filestore.SWBFileObject;
+import org.semanticwb.datamanager.filestore.SWBFileSource;
 
 /**
  *
@@ -16,6 +19,8 @@ import org.semanticwb.datamanager.DataObject;
  */
 public class PhotoHandler implements RouteHandler {
     private static byte[] defaultImage;
+    private final SWBScriptEngine engine = DataMgr.getUserScriptEngine("/cloudino.js", null);
+    private final SWBFileSource fs = engine.getFileSource("UserPhotos");
 
     @Override
     public void config(Mustache mustache) {
@@ -36,8 +41,21 @@ public class PhotoHandler implements RouteHandler {
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, DataObject user) throws IOException, ServletException {
-        response.setContentType("image/jpg");
-        response.getOutputStream().write(defaultImage);
+        System.out.println("photo:"+user);
+        if(null!=user){
+            System.out.println("buscar: "+user.getNumId()+":photo");
+            SWBFileObject fo = fs.getFile(user.getNumId()+":photo");System.out.println("fo:"+fo);
+            if (null!=fo){
+                response.setContentType(fo.getContentType());
+                response.getOutputStream().write(fo.getContentAsByteArray());
+            } else {
+                response.setContentType("image/jpg");
+                response.getOutputStream().write(defaultImage);
+            }
+        } else {
+            response.setContentType("image/jpg");
+            response.getOutputStream().write(defaultImage);
+        }
     }
     
 }

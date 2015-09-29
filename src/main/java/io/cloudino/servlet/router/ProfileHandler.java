@@ -9,7 +9,11 @@ import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.semanticwb.datamanager.DataMgr;
 import org.semanticwb.datamanager.DataObject;
+import org.semanticwb.datamanager.SWBDataSource;
+import org.semanticwb.datamanager.SWBScriptEngine;
+import org.semanticwb.datamanager.filestore.SWBFileSource;
 
 /**
  *
@@ -19,6 +23,9 @@ public class ProfileHandler implements RouteHandler {
 
     private Mustache mustache;
     private static final Logger logger = Logger.getLogger("i.c.s.r.ProfileHandler");
+    private final SWBScriptEngine engine = DataMgr.getUserScriptEngine("/cloudino.js", null);
+    private final SWBDataSource ds = engine.getDataSource("User");
+    private final SWBFileSource fs = engine.getFileSource("UserPhotos");
 
     @Override
     public void config(Mustache mustache) {
@@ -55,12 +62,14 @@ public class ProfileHandler implements RouteHandler {
     }
 
     private Map<String, Object> savePhoto(HttpServletRequest request, DataObject user) {
+        System.out.println("----------------------savePhoto");
         Map<String, Object> scope = new HashMap<>();
-        if (FileUploadUtils.saveToOutputStream(request, null, "")) { //TODO - Aún falta el método para guardar la foto en MongoDB
+        if (FileUploadUtils.saveToSWBFileSource(request, fs, "inputPhoto", user.getNumId()+":photo")) { //TODO - Aún falta el método para guardar la foto en MongoDB
             scope.put("Message", "Photo Uploaded");
         } else {
             scope.put("Error", "We coudn't save your photo");
         }
+        System.out.println("--------------------------------");
         return scope;
     }
 

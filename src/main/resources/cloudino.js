@@ -121,6 +121,15 @@ eng.dataProcessors["UserProcessor"]={
     }          
 };
 
+/******* FileSources ***************/
+eng.fileSources["UserPhotos"]={
+    scls: "UserPhoto",
+    class: "org.semanticwb.datamanager.filestore.FileSourceMongo",
+    modelid: "Cloudino",
+    dataStore: "mongodb", 
+    maxSize: 100000,
+    cachableSize: 5120,
+}
 
 /******* DataExtractors ************
 eng.dataExtractors["SWBSocial1"]={
