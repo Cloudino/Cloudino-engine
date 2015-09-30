@@ -149,8 +149,6 @@ public class FileUploadUtils {
     }
     
     public static boolean saveToSWBFileSource(HttpServletRequest request, SWBFileSource file, String fileFieldName, String localName){
-        System.out.println("fileFeldName: "+fileFieldName);
-        System.out.println("localName: "+localName);
         ServletFileUpload upload = new ServletFileUpload(factory);
         upload.setSizeMax(file.getMaxSize());
         try {
@@ -160,7 +158,6 @@ public class FileUploadUtils {
                     .filter(
                             fi -> fi.getFieldName().equalsIgnoreCase(fileFieldName))
                     .findFirst();
-            System.out.println("found?:"+oFileItem.isPresent());
             oFileItem.ifPresent(fi -> {
                 try {
                     file.storeFile(new SWBFileObject(localName, fi.getContentType(), fi.getInputStream()));

@@ -3,6 +3,7 @@ package io.cloudino.servlet.router;
 import com.github.mustachejava.Mustache;
 import io.cloudino.utils.FileUploadUtils;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -34,16 +35,19 @@ public class ProfileHandler implements RouteHandler {
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, DataObject user) throws IOException, ServletException {
-        System.out.println("profile called!");
-        System.out.println("request method :" + request.getMethod());
-        System.out.println("request type   :" + request.getContentType());
         if (request.getMethod().equalsIgnoreCase("POST")) {
             if (request.getContentType().startsWith("multipart/form-data")) {
                 Map<String, Object> scope = savePhoto(request, user);
                 scope.put("ctx", request.getContextPath());
                 scope.put("user", user);
-                //response.setCharacterEncoding("utf-8");
-                mustache.execute(response.getWriter(), scope);
+                response.setCharacterEncoding("utf-8");
+                //mustache.execute(response.getWriter(), scope);
+                PrintWriter out = response.getWriter();
+                out.print("{");
+                if (scope.containsKey("Error")) {
+                    out.print("error:\""+scope.get("Error")+"\"");
+                }
+                out.print("}");
                 return;
             } else {
                 Map<String, Object> scope = saveData(request, user);
@@ -62,14 +66,12 @@ public class ProfileHandler implements RouteHandler {
     }
 
     private Map<String, Object> savePhoto(HttpServletRequest request, DataObject user) {
-        System.out.println("----------------------savePhoto");
         Map<String, Object> scope = new HashMap<>();
         if (FileUploadUtils.saveToSWBFileSource(request, fs, "inputPhoto", user.getNumId()+":photo")) { //TODO - Aún falta el método para guardar la foto en MongoDB
             scope.put("Message", "Photo Uploaded");
         } else {
             scope.put("Error", "We coudn't save your photo");
         }
-        System.out.println("--------------------------------");
         return scope;
     }
 
