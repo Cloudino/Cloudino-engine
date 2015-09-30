@@ -24,9 +24,6 @@ public class ProfileHandler implements RouteHandler {
 
     private Mustache mustache;
     private static final Logger logger = Logger.getLogger("i.c.s.r.ProfileHandler");
-    private final SWBScriptEngine engine = DataMgr.getUserScriptEngine("/cloudino.js", null);
-    private final SWBDataSource ds = engine.getDataSource("User");
-    private final SWBFileSource fs = engine.getFileSource("UserPhotos");
 
     @Override
     public void config(Mustache mustache) {
@@ -66,6 +63,10 @@ public class ProfileHandler implements RouteHandler {
     }
 
     private Map<String, Object> savePhoto(HttpServletRequest request, DataObject user) {
+        
+        SWBScriptEngine engine = DataMgr.getUserScriptEngine("/cloudino.js", user);
+        SWBFileSource fs = engine.getFileSource("UserPhotos");
+
         Map<String, Object> scope = new HashMap<>();
         if (FileUploadUtils.saveToSWBFileSource(request, fs, "inputPhoto", user.getNumId()+":photo")) { //TODO - Aún falta el método para guardar la foto en MongoDB
             scope.put("Message", "Photo Uploaded");
@@ -76,6 +77,9 @@ public class ProfileHandler implements RouteHandler {
     }
 
     private Map<String, Object> saveData(HttpServletRequest request, DataObject user) {
+        SWBScriptEngine engine = DataMgr.getUserScriptEngine("/cloudino.js", user);
+        SWBDataSource ds = engine.getDataSource("User");
+        
         Map<String, Object> scope = new HashMap<>();
         return scope;
     }
