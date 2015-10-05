@@ -25,7 +25,7 @@ eng.dataStores["mongodb"]={
     //envport:"MONGO_PORT_27017_TCP_PORT",
 };
 
-eng.routes={
+eng.routes["cloudino"]={
     loginFallback: "login",
     routeList:[
         { routePath: "login", routeHandler: "io.cloudino.servlet.router.LoginHandler", isRestricted: "false", template: "login" },
@@ -33,7 +33,7 @@ eng.routes={
         //{ routePath: "panel", routeHandler: "io.cloudino.servlet.router.PanelHandler", isRestricted: "true", template: "panel" },
         { routePath: "", forwardTo: "/index.jsp", isRestricted: "false"},
         { routePath: "work", isRestricted: "true"},
-        { routePath: "panel", forwardTo: "/work/panel/index.jsp", isRestricted: "true" },
+        //{ routePath: "panel", forwardTo: "/work/panel/index.jsp", isRestricted: "true" },
         { routePath: "panel/*", jspMapTo: "/work/panel/", isRestricted: "true"},
         { routePath: "profile", routeHandler: "io.cloudino.servlet.router.ProfileHandler", isRestricted: "true", template: "profile" },
         { routePath: "photo", routeHandler: "io.cloudino.servlet.router.PhotoHandler", isRestricted: "false" },
