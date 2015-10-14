@@ -94,7 +94,7 @@ eng.dataSources["Control"]={
     dataStore: "mongodb",    
     //{user:, device:, title, type:"MsgButton", data:{topic, msg}}
     fields:[
-        {name:"title",title:"Title",type:"string"},
+        {name:"name",title:"Name",type:"string"},
         {name:"device",title:"Device",type:"string"},
         {name:"user",title:"User",type:"string"},
         {name:"type",title:"Type",type:"string"},
@@ -106,6 +106,49 @@ eng.dataSources["Control"]={
         },
     ],      
 };
+
+eng.dataSources["UserContext"]={
+    scls: "UserContext",
+    modelid: "Cloudino",
+    dataStore: "mongodb",    
+    //{user:, device:, title, type:"MsgButton", data:{topic, msg}}
+    fields:[
+        {name:"name",title:"Name",type:"string"},
+        {name:"description",title:"Description",type:"string"},
+        {name:"user",title:"User",type:"string"},
+        {name:"icon",title:"Icon",type:"string"},
+    ],      
+};
+
+eng.dataSources["DeviceGroup"]={
+    scls: "DeviceGroup",
+    modelid: "Cloudino",
+    dataStore: "mongodb",    
+    //{user:, device:, title, type:"MsgButton", data:{topic, msg}}
+    fields:[
+        {name:"name",title:"Name",type:"string"},
+        {name:"description",title:"Description",type:"string"},
+        {name:"user",title:"User",type:"string"},
+        {name:"icon",title:"Icon",type:"string"},
+        {name:"devices", title:"Devices", stype:"select", multiple:true, dataSource:"Device"},
+    ],      
+};
+
+eng.dataSources["CloudRule"]={
+    scls: "CloudRule",
+    modelid: "Cloudino",
+    dataStore: "mongodb",    
+    //{user:, device:, title, type:"MsgButton", data:{topic, msg}}
+    fields:[
+        {name:"name",title:"Name",type:"string"},
+        {name:"description",title:"Description",type:"string"},
+        {name:"user",title:"User",type:"string"},
+        {name:"script",title:"Script",type:"string"},
+        {name:"xml",title:"XML",type:"string"},
+        {name:"state",title:"State",type:"string"},
+    ],      
+};
+
 
 /******* DataProcessors ************/
 eng.dataProcessors["UserProcessor"]={
