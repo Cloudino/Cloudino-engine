@@ -31,21 +31,46 @@ public class JavaScriptTest {
 //            System.out.println(om+" isFunction "+om.isFunction());
 //            System.out.println(om+" isSealed "+om.isSealed());
 //            System.out.println(om+" isStrictFunction "+om.isStrictFunction());            
-//            System.out.println(om+" getOwnKeys "+Arrays.asList(om.getOwnKeys(true)));            
+//            System.out.println(om+" getOwnKeys "+Arrays.asList(om.getOwnKeys(true)));  
+            
             if(om.isFunction())
             {
                 ret.append(om.toString());
-            }else
+            }else if(om.isArray())
+            {
+                ret.append("[");
+                //ret.append("isArray:"+om.toString());
+                for(int x=0;x<om.size();x++)
+                {
+                    Object o=om.getSlot(x);
+                    ret.append(serialize(o));
+                    if(x+1<om.size())ret.append(",");
+                }
+                ret.append("]");
+            }else if(om.toString().indexOf("global")>-1)
             {
                 Iterator<Map.Entry<String,Object>> it=om.entrySet().iterator();
                 while (it.hasNext()) {
                    Map.Entry<String, Object> entry = it.next();
                    ret.append("var "+entry.getKey()+"="+serialize(entry.getValue())+";\n");
                }
+            }else
+            {
+                ret.append("{");
+                Iterator<Map.Entry<String,Object>> it=om.entrySet().iterator();
+                while (it.hasNext()) {
+                   Map.Entry<String, Object> entry = it.next();
+                   ret.append(entry.getKey()+":"+serialize(entry.getValue()));
+                   if(it.hasNext())ret.append(",");
+               }
+               ret.append("}");
             }
+        }else if(obj instanceof String)
+        {
+            ret.append("\""+obj+"\"");
         }else
         {
-            ret.append(obj.toString());
+            ret.append(obj);
         }
         return ret.toString();
     }
@@ -54,10 +79,18 @@ public class JavaScriptTest {
     {
         ScriptEngineManager factory = new ScriptEngineManager();
         ScriptEngine engine = factory.getEngineByName("JavaScript");
-        engine.eval("function p(x){print(x);};var c=function(x){print(x);};var i=function(){x++;};var x=10;var cap=function(z){return function(msg){print(msg+\" \"+z);}}(x);");
+        //engine.eval("function p(x){print(x);};var c=function(x){print(x);};var i=function(){x++;};var x=10;var cap=function(z){return function(msg){print(msg+\" \"+z);}}(x);");
+        String script="" +
+"var events=[];\n" +
+"var msg;\n" +
+"{ \n" +
+"	var _cntx=\"contx1\"; \n" +
+"	events.push({cntx:_cntx,type:\"cdino_ondevice_message\",funct:function(msg){print(msg);},params:{topic:\"topic\"}});\n" +
+"}";    
+        engine.eval(script);
         ScriptObjectMirror bind=((ScriptObjectMirror)engine.getBindings(ScriptContext.ENGINE_SCOPE));
-        bind.callMember("i");
-        bind.callMember("cap","hola");
+        //bind.callMember("i");
+        //bind.callMember("cap","hola");
         
         String txt=serialize(bind);
         System.out.println(txt);
@@ -84,10 +117,13 @@ public class JavaScriptTest {
         engine.eval(txt);
 
         bind=((ScriptObjectMirror)engine.getBindings(ScriptContext.ENGINE_SCOPE));
-        bind.callMember("i");
+        
+        ((ScriptObjectMirror)((ScriptObjectMirror)bind.get("events")).getSlot(0)).callMember("funct", "hola");
+        
+        //bind.callMember("i");
         //bind.callMember("cap","hola");
         
-        System.out.println(engine.getFactory().getParameter("THREADING"));
+        //System.out.println(engine.getFactory().getParameter("THREADING"));
         
         txt=serialize(bind);
         System.out.println(txt);        
