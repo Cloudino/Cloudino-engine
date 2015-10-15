@@ -59,7 +59,7 @@ public class RegisterHandler implements RouteHandler {
                             obj.put("emailSent", "false");
                             Address userAddr = new InternetAddress(email, fullname, "utf-8");
                             DataObject dao = ds.addObj(obj); 
-                            dao = dao.getDataObject("response").getDataObject("data"); System.out.println("dao:"+dao);
+                            dao = dao.getDataObject("response").getDataObject("data");// System.out.println("dao:"+dao);
                             String content = MessageFormat.format(Utils.textInputStreamToString(
                                     LoginHandler.class.getResourceAsStream("/templates/confirmationMail.template"),"utf-8"),
                                     fullname, TokenGenerator.nextTokenByUserId(dao.getNumId()), email); 

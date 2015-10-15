@@ -165,7 +165,7 @@ eng.dataProcessors["UserProcessor"]={
 };
 
 /******* FileSources ***************/
-eng.fileSources["UserPhotos"]={
+eng.fileSources["UserPhoto"]={
     scls: "UserPhoto",
     class: "org.semanticwb.datamanager.filestore.FileSourceMongo",
     modelid: "Cloudino",

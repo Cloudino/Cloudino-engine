@@ -33,16 +33,16 @@ public class ProfileHandler implements RouteHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, DataObject user) throws IOException, ServletException {
         if (request.getMethod().equalsIgnoreCase("POST")) {
-            if (request.getContentType().startsWith("multipart/form-data")) {
+            if (null!=request.getContentType() && request.getContentType().startsWith("multipart/form-data")) {
                 Map<String, Object> scope = savePhoto(request, user);
                 scope.put("ctx", request.getContextPath());
                 scope.put("user", user);
                 response.setCharacterEncoding("utf-8");
-                //mustache.execute(response.getWriter(), scope);
+                mustache.execute(response.getWriter(), scope);
                 PrintWriter out = response.getWriter();
                 out.print("{");
                 if (scope.containsKey("Error")) {
-                    out.print("error:\""+scope.get("Error")+"\"");
+                    out.print("error\":\""+scope.get("Error")+"\"");
                 }
                 out.print("}");
                 return;
@@ -50,36 +50,40 @@ public class ProfileHandler implements RouteHandler {
                 Map<String, Object> scope = saveData(request, user);
                 scope.put("ctx", request.getContextPath());
                 scope.put("user", user);
-                //response.setCharacterEncoding("utf-8");
+                response.setCharacterEncoding("utf-8");
                 mustache.execute(response.getWriter(), scope);
                 return;
             }
         }
-        Map<String, Object> scope = new HashMap<>();
+        Map<String, Object> scope = saveData(request, user);
         scope.put("ctx", request.getContextPath());
         scope.put("user", user);
-        //response.setCharacterEncoding("utf-8");
+        response.setCharacterEncoding("utf-8");
         mustache.execute(response.getWriter(), scope);
     }
 
     private Map<String, Object> savePhoto(HttpServletRequest request, DataObject user) {
         
         SWBScriptEngine engine = DataMgr.getUserScriptEngine("/cloudino.js", user);
-        SWBFileSource fs = engine.getFileSource("UserPhotos");
+        SWBFileSource fs = engine.getFileSource("UserPhoto");
 
         Map<String, Object> scope = new HashMap<>();
-        if (FileUploadUtils.saveToSWBFileSource(request, fs, "inputPhoto", user.getNumId()+":photo")) { //TODO - Aún falta el método para guardar la foto en MongoDB
+        if (FileUploadUtils.saveToSWBFileSource(request, fs, "inputPhoto", user.getNumId()+":photo")) { 
             scope.put("Message", "Photo Uploaded");
         } else {
-            scope.put("Error", "We coudn't save your photo");
+            scope.put("Error", "We coudn't save your photo, it has to be below 100Kb");
         }
         return scope;
     }
 
-    private Map<String, Object> saveData(HttpServletRequest request, DataObject user) {
+    private Map<String, Object> saveData(HttpServletRequest request, DataObject user) throws IOException {
         SWBScriptEngine engine = DataMgr.getUserScriptEngine("/cloudino.js", user);
         SWBDataSource ds = engine.getDataSource("User");
-        
+        String name = request.getParameter("inputName");
+        if (null!=name){
+            user.put("fullname", name);
+            ds.updateObj(user);
+        }
         Map<String, Object> scope = new HashMap<>();
         return scope;
     }

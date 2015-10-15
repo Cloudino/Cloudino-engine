@@ -123,7 +123,7 @@ public class CloudinoFilter implements Filter {
 
     private RouteHandler getHandler(RouteData data) {
         ScriptObject path = data.getScriptObject();
-        System.out.println("getHandler:" + path);
+//        System.out.println("getHandler:" + path);
         try {
 //            if ("true".equalsIgnoreCase(path.getString("isRestricted"))) {
 //                securedRoutes.add(path.getString("routePath"));

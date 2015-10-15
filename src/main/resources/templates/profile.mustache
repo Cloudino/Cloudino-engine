@@ -33,11 +33,11 @@
                 </ul>
                 <div class="tab-content">
                   <div class="active tab-pane" id="settings">
-                    <form class="form-horizontal" method="post" action="{{ctx}}/profile" data-submit="ajax">
+                    <form class="form-horizontal" method="post" action="{{ctx}}/profile" data-submit="ajax" role="form" required>
                       <div class="form-group">
                         <label for="inputName" class="col-sm-2 control-label">Full Name</label>
                         <div class="col-sm-10">
-                          <input type="email" class="form-control" id="inputName" placeholder="Name" value="{{user.fullname}}">
+                          <input type="text" class="form-control" name="inputName" id="inputName" placeholder="Name" value="{{user.fullname}}">
                         </div>
                       </div>
                       
@@ -244,6 +244,7 @@ $("#inputPhoto").fileinput({
     maxFileCount:1,
     uploadUrl: "{{ctx}}/profile",
     dropZoneEnabled: false,
+    showPreview: false,
 });
 </script>
         </section><!-- /.content -->

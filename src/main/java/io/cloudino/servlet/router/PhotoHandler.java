@@ -20,7 +20,7 @@ import org.semanticwb.datamanager.filestore.SWBFileSource;
 public class PhotoHandler implements RouteHandler {
     private static byte[] defaultImage;
     private final SWBScriptEngine engine = DataMgr.getUserScriptEngine("/cloudino.js", null);
-    private final SWBFileSource fs = engine.getFileSource("UserPhotos");
+    private final SWBFileSource fs = engine.getFileSource("UserPhoto");
 
     @Override
     public void config(Mustache mustache) {
@@ -41,10 +41,10 @@ public class PhotoHandler implements RouteHandler {
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, DataObject user) throws IOException, ServletException {
-        System.out.println("photo:"+user);
+//        System.out.println("photo:"+user);
         if(null!=user){
-            System.out.println("buscar: "+user.getNumId()+":photo");
-            SWBFileObject fo = fs.getFile(user.getNumId()+":photo");System.out.println("fo:"+fo);
+//            System.out.println("buscar: "+user.getNumId()+":photo");
+            SWBFileObject fo = fs.getFile(user.getNumId()+":photo");//System.out.println("fo:"+fo);
             if (null!=fo){
                 response.setContentType(fo.getContentType());
                 response.getOutputStream().write(fo.getContentAsByteArray());

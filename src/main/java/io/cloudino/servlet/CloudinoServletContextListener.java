@@ -22,7 +22,7 @@ public class CloudinoServletContextListener implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent sce) {   
         log.info("Starting Cloudino Portal");
-        System.out.println("aplicacion web arrancada");
+//        System.out.println("aplicacion web arrancada");
         DataMgr.createInstance(sce.getServletContext().getRealPath("/"));
         FileUploadUtils.init((File)sce.getServletContext().getAttribute("javax.servlet.context.tempdir"));
         log.info("Cloudino DataMgr Started");
@@ -42,6 +42,6 @@ public class CloudinoServletContextListener implements ServletContextListener {
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
-        System.out.println("aplicacion web parada");
+//        System.out.println("aplicacion web parada");
     }
 }
