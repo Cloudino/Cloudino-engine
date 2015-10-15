@@ -57,7 +57,7 @@ public class RuleEngineProvider {
             result = retreiveFromSerialized(id);
         }
         if (null == result) {
-            result = createAndAdd(id);
+            result = create(id);
         }
         if (null != result) {
             put(id, result);
@@ -69,7 +69,7 @@ public class RuleEngineProvider {
         SoftValue sv;
         while ((sv = (SoftValue) queue.poll()) != null) {
             hash.remove(sv.key);
-            serializeAndSave((ScriptEngine) sv.get());
+            serializeAndSave(sv.key, (ScriptEngine) sv.get());
         }
     }
 
@@ -88,7 +88,7 @@ public class RuleEngineProvider {
         return null; //TODO: implementa retreive serialized bindings
     }
 
-    private ScriptEngine createAndAdd(String id) {
+    private ScriptEngine create(String id) {
         ScriptEngine result;
         try {
             SWBScriptEngine engine = DataMgr.getUserScriptEngine("/cloudino.js", null);
@@ -104,15 +104,15 @@ public class RuleEngineProvider {
         return result;
     }
 
-    private void serializeAndSave(ScriptEngine scriptEngine) {
+    private void serializeAndSave(String  key, ScriptEngine scriptEngine) {
         //TODO: serialize bindings and save to some storage
     }
 
     private static class SoftValue extends SoftReference {
 
-        private final Object key;
+        private final String key;
 
-        private SoftValue(Object value, Object key, ReferenceQueue q) {
+        private SoftValue(Object value, String key, ReferenceQueue q) {
             super(value, q);
             this.key = key;
         }

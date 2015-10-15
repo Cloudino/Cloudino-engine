@@ -25,7 +25,7 @@ import org.semanticwb.datamanager.DataObject;
  */
 public class Device 
 {
-    private static final Set<Observer> observers =new CopyOnWriteArraySet<Observer>();
+    private static final Set<DeviceObserver> observers =new CopyOnWriteArraySet<DeviceObserver>();
     private DeviceMgr mgr=null;
     private String id;
     private DeviceConn con=null;
@@ -110,9 +110,9 @@ public class Device
     protected void receive(String topic,String msg)
     {
         System.out.println("receive->Topic:"+topic+" msg:"+msg);
-        Iterator<Observer> it=observers.iterator();
+        Iterator<DeviceObserver> it=observers.iterator();
         while (it.hasNext()) {
-            Observer observer = it.next();
+            DeviceObserver observer = it.next();
             try
             {
                 observer.notify(topic, msg);
@@ -129,9 +129,9 @@ public class Device
     protected void receiveLog(String data)
     {
         System.out.println("receive->Log:"+data);
-        Iterator<Observer> it=observers.iterator();
+        Iterator<DeviceObserver> it=observers.iterator();
         while (it.hasNext()) {
-            Observer observer = it.next();
+            DeviceObserver observer = it.next();
             try
             {
                 observer.notifyLog(data);
@@ -145,9 +145,9 @@ public class Device
     protected void receiveCompiler(String data)
     {
         System.out.println("receive->Log:"+data);
-        Iterator<Observer> it=observers.iterator();
+        Iterator<DeviceObserver> it=observers.iterator();
         while (it.hasNext()) {
-            Observer observer = it.next();
+            DeviceObserver observer = it.next();
             try
             {
                 observer.notifyCompiler(data);
@@ -192,7 +192,7 @@ public class Device
         return false;
     }
     
-    public void registerObserver(Observer obs)
+    public void registerObserver(DeviceObserver obs)
     {
         if(!observers.contains(obs))
         {
@@ -200,7 +200,7 @@ public class Device
         }
     }
     
-    public void removeObserver(Observer obs)
+    public void removeObserver(DeviceObserver obs)
     {
         observers.remove(obs);
         free();

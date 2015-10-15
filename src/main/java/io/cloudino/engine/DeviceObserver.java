@@ -12,7 +12,7 @@ import java.io.IOException;
  *
  * @author javiersolis
  */
-public interface Observer {
+public interface DeviceObserver {
     
     public void notify(String topic, String msg) throws IOException;
     public void notifyLog(String data) throws IOException;

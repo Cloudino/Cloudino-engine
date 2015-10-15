@@ -8,7 +8,7 @@ package io.cloudino.servlet;
 
 import io.cloudino.engine.Device;
 import io.cloudino.engine.DeviceMgr;
-import io.cloudino.engine.Observer;
+import io.cloudino.engine.DeviceObserver;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
@@ -26,7 +26,7 @@ import javax.websocket.server.ServerEndpoint;
  * @author javiersolis
  */
 @ServerEndpoint(value = "/websocket/cdino")
-public class WebSocketServer implements Observer
+public class WebSocketServer implements DeviceObserver
 {
     private static final String GUEST_PREFIX = "Guest";
     private static final AtomicInteger connectionIds = new AtomicInteger(0);
