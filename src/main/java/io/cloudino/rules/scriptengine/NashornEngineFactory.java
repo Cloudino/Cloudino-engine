@@ -32,7 +32,6 @@ public class NashornEngineFactory {
             }
         };
     static {
-        System.out.println("cola:"+cola.remainingCapacity()+" creating scripts.... ");
         for(int i=0; i<size; i++)
             service.execute(task);
     }
