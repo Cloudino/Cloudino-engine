@@ -81,11 +81,11 @@ public class JavaScriptTest {
         ScriptEngine engine = factory.getEngineByName("JavaScript");
         //engine.eval("function p(x){print(x);};var c=function(x){print(x);};var i=function(){x++;};var x=10;var cap=function(z){return function(msg){print(msg+\" \"+z);}}(x);");
         String script="" +
-"var events=[];\n" +
+"var _cdino_events=[];\n" +
 "var msg;\n" +
 "{ \n" +
-"	var _cntx=\"contx1\"; \n" +
-"	events.push({cntx:_cntx,type:\"cdino_ondevice_message\",funct:function(msg){print(msg);},params:{topic:\"topic\"}});\n" +
+"	var _cdino_cntx=\"contx1\"; \n" +
+"	_cdino_events.push({cntx:_cdino_cntx,type:\"cdino_ondevice_message\",funct:function(msg){print(msg);},params:{topic:\"topic\"}});\n" +
 "}";    
         engine.eval(script);
         ScriptObjectMirror bind=((ScriptObjectMirror)engine.getBindings(ScriptContext.ENGINE_SCOPE));
