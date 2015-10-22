@@ -100,6 +100,7 @@ public class JavaScriptTest {
         ScriptEngineManager factory = new ScriptEngineManager();
         ScriptEngine engine = factory.getEngineByName("JavaScript");
         //engine.eval("function p(x){print(x);};var c=function(x){print(x);};var i=function(){x++;};var x=10;var cap=function(z){return function(msg){print(msg+\" \"+z);}}(x);");
+
         String script = ""
                 + "var events=[];\n"
                 + "var msg;\n"
