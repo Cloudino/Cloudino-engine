@@ -43,6 +43,13 @@ public class MailSender {
         }));
     }
 
+    /**
+     * Sends an confirmation email in the background using the server configured in cloudino.js
+     * @param userAddr Address to send the mail
+     * @param subject email subject
+     * @param content email content
+     * @param userID id to update on mail sent
+     */
     public static void send(final Address userAddr, final String subject, final String content, final String userID) {
         try {
             Session session = MailSender.getSession();
