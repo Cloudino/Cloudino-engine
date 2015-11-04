@@ -149,6 +149,21 @@ eng.dataSources["CloudRule"]={
     ],      
 };
 
+eng.dataSources["CloudRuleEvent"]={
+    scls: "CloudRuleEvent",
+    modelid: "Cloudino",
+    dataStore: "mongodb",    
+    //{user:, device:, title, type:"MsgButton", data:{topic, msg}}
+    fields:[
+        {name:"cloudRule",title:"CloudRule",type:"string"},
+        {name:"user",title:"User",type:"string"},
+        {name:"type",title:"Type",type:"string"},
+        {name:"context",title:"Context",type:"string"},
+        {name:"funct",title:"Function",type:"string"},
+        {name:"params",title:"Params",type:"object"},
+    ],      
+};
+
 
 /******* DataProcessors ************/
 eng.dataProcessors["UserProcessor"]={

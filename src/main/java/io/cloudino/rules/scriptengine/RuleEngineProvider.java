@@ -3,7 +3,6 @@ package io.cloudino.rules.scriptengine;
 import java.io.IOException;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,6 +13,7 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.semanticwb.datamanager.DataList;
 import org.semanticwb.datamanager.DataMgr;
 import org.semanticwb.datamanager.DataObject;
 import org.semanticwb.datamanager.SWBDataSource;
@@ -23,20 +23,37 @@ import org.semanticwb.datamanager.SWBScriptEngine;
  *
  * @author serch
  */
-public class RuleEngineProvider {
+public class RuleEngineProvider 
+{
 
     private static final Logger logger = Logger.getLogger("i.c.r.se.RuleEngineProvider");
     private final Map<String, SoftReference> hash = new ConcurrentHashMap<>();
     private final int HARD_SIZE;
     private final LinkedList hardCache = new LinkedList();
     private final ReferenceQueue queue = new ReferenceQueue();
+    private static RuleEngineProvider instance=null;
 
-    public RuleEngineProvider() {
+    private RuleEngineProvider() {
         this(100);
     }
-
-    public RuleEngineProvider(int size) {
+    
+    private RuleEngineProvider(int size) {
         this.HARD_SIZE = size;
+    }
+    
+    public static RuleEngineProvider getInstance()
+    {
+        if(instance==null)
+        {
+            synchronized(RuleEngineProvider.class)
+            {
+                if(instance==null)
+                {
+                    instance=new RuleEngineProvider();
+                }
+            }
+        }
+        return instance;
     }
 
     public ScriptEngine getEngine(String id) {
@@ -129,70 +146,10 @@ public class RuleEngineProvider {
             SWBScriptEngine engine = DataMgr.getUserScriptEngine("/cloudino.js", null);
             SWBDataSource ds = engine.getDataSource("CloudRule");
             DataObject cloudRule = ds.fetchObjById(id);
-            cloudRule.put("state", serialize(scriptEngine.getBindings(ScriptContext.ENGINE_SCOPE)));
+            cloudRule.put("state", NashornEngineFactory.serialize(scriptEngine.getBindings(ScriptContext.ENGINE_SCOPE)));
             ds.updateObj(cloudRule);
         } catch (IOException ioe) {
         }
-    }
-
-    private String serialize(Object obj) {
-        StringBuilder ret = new StringBuilder();
-        if (obj instanceof ScriptObjectMirror) {
-            ScriptObjectMirror om = (ScriptObjectMirror) obj;
-//            System.out.println(om+" isArray "+om.isArray());
-//            System.out.println(om+" isEmpty "+om.isEmpty());
-//            System.out.println(om+" isExtensible "+om.isExtensible());
-//            System.out.println(om+" isFrozen "+om.isFrozen());
-//            System.out.println(om+" isFunction "+om.isFunction());
-//            System.out.println(om+" isSealed "+om.isSealed());
-//            System.out.println(om+" isStrictFunction "+om.isStrictFunction());            
-//            System.out.println(om+" getOwnKeys "+Arrays.asList(om.getOwnKeys(true)));  
-
-            if (om.isFunction()) {
-                ret.append(om.toString());
-            } else if (om.isArray()) {
-                ret.append("[");
-                //ret.append("isArray:"+om.toString());
-                for (int x = 0; x < om.size(); x++) {
-                    Object o = om.getSlot(x);
-                    ret.append(serialize(o));
-                    if (x + 1 < om.size()) {
-                        ret.append(",");
-                    }
-                }
-                ret.append("]");
-            } else if (om.toString().contains("global")) {
-                Iterator<Map.Entry<String, Object>> it = om.entrySet().iterator();
-                while (it.hasNext()) {
-                    Map.Entry<String, Object> entry = it.next();
-                    ret.append("var ")
-                            .append(entry.getKey())
-                            .append("=")
-                            .append(serialize(entry.getValue()))
-                            .append(";\n");
-                }
-            } else {
-                ret.append("{");
-                Iterator<Map.Entry<String, Object>> it = om.entrySet().iterator();
-                while (it.hasNext()) {
-                    Map.Entry<String, Object> entry = it.next();
-                    ret.append(entry.getKey())
-                            .append(":")
-                            .append(serialize(entry.getValue()));
-                    if (it.hasNext()) {
-                        ret.append(",");
-                    }
-                }
-                ret.append("}");
-            }
-        } else if (obj instanceof String) {
-            ret.append("\"")
-                    .append(obj)
-                    .append("\"");
-        } else {
-            ret.append(obj);
-        }
-        return ret.toString();
     }
 
     private static class SoftValue extends SoftReference {
@@ -204,5 +161,32 @@ public class RuleEngineProvider {
             this.key = key;
         }
     }
+    
+    public static void invokeEvent(String type, DataObject user, String context, DataObject params, Object... functParams) throws IOException
+    {
+        RuleEngineProvider rep = RuleEngineProvider.getInstance();
+        DataList<DataObject> ret=rep.getOnEvents(type, user, context, params);
+        
+        for(DataObject o : ret)
+        {                
+            ScriptEngine engine = rep.getEngine(o.getString("cloudRule"));
+            ScriptObjectMirror evtents=(ScriptObjectMirror)engine.get("_cdino_events");        
+            ScriptObjectMirror event=(ScriptObjectMirror)evtents.getSlot(o.getInt("arrayIndex"));
+            event.callMember("funct", functParams);
+            //out.println();        
+        }        
+    }
+    
+    private DataList getOnEvents(String type, DataObject user, String context, DataObject params) throws IOException
+    {
+        SWBScriptEngine engine = DataMgr.getUserScriptEngine("/cloudino.js", user);
+        SWBDataSource ds = engine.getDataSource("CloudRuleEvent");
+        DataObject obj=new DataObject();
+        DataObject data=obj.addSubObject("data").addParam("type", type).addParam("user", user.getId());
+        if(context!=null)data.addParam("context", context);
+        data.addParam("params", params);
+        DataObject ret=ds.fetch(obj);
+        return ret.getDataObject("response").getDataList("data");
+    }  
 
 }

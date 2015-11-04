@@ -1,5 +1,7 @@
 package io.cloudino.rules.scriptengine;
 
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
@@ -9,6 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
 
 /**
  *
@@ -46,6 +49,66 @@ public class NashornEngineFactory {
     public static ScriptEngine getEngine(final long timeout, final TimeUnit unit) throws InterruptedException {
         service.execute(task);
         return cola.poll(timeout, unit);
+    }
+    
+    public static String serialize(Object obj) {
+        StringBuilder ret = new StringBuilder();
+        if (obj instanceof ScriptObjectMirror) {
+            ScriptObjectMirror om = (ScriptObjectMirror) obj;
+//            System.out.println(om+" isArray "+om.isArray());
+//            System.out.println(om+" isEmpty "+om.isEmpty());
+//            System.out.println(om+" isExtensible "+om.isExtensible());
+//            System.out.println(om+" isFrozen "+om.isFrozen());
+//            System.out.println(om+" isFunction "+om.isFunction());
+//            System.out.println(om+" isSealed "+om.isSealed());
+//            System.out.println(om+" isStrictFunction "+om.isStrictFunction());            
+//            System.out.println(om+" getOwnKeys "+Arrays.asList(om.getOwnKeys(true)));  
+
+            if (om.isFunction()) {
+                ret.append(om.toString());
+            } else if (om.isArray()) {
+                ret.append("[");
+                //ret.append("isArray:"+om.toString());
+                for (int x = 0; x < om.size(); x++) {
+                    Object o = om.getSlot(x);
+                    ret.append(serialize(o));
+                    if (x + 1 < om.size()) {
+                        ret.append(",");
+                    }
+                }
+                ret.append("]");
+            } else if (om.toString().contains("global")) {
+                Iterator<Map.Entry<String, Object>> it = om.entrySet().iterator();
+                while (it.hasNext()) {
+                    Map.Entry<String, Object> entry = it.next();
+                    ret.append("var ")
+                            .append(entry.getKey())
+                            .append("=")
+                            .append(serialize(entry.getValue()))
+                            .append(";\n");
+                }
+            } else {
+                ret.append("{");
+                Iterator<Map.Entry<String, Object>> it = om.entrySet().iterator();
+                while (it.hasNext()) {
+                    Map.Entry<String, Object> entry = it.next();
+                    ret.append(entry.getKey())
+                            .append(":")
+                            .append(serialize(entry.getValue()));
+                    if (it.hasNext()) {
+                        ret.append(",");
+                    }
+                }
+                ret.append("}");
+            }
+        } else if (obj instanceof String) {
+            ret.append("\"")
+                    .append(obj)
+                    .append("\"");
+        } else {
+            ret.append(obj);
+        }
+        return ret.toString();
     }
     
 }

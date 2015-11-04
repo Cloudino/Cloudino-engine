@@ -1,6 +1,5 @@
 
 import io.cloudino.rules.scriptengine.RuleEngineProvider;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 import javax.script.ScriptContext;
@@ -9,7 +8,6 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.semanticwb.datamanager.DataMgr;
-import org.semanticwb.datamanager.SWBScriptEngine;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -21,10 +19,14 @@ import org.semanticwb.datamanager.SWBScriptEngine;
  * @author javiersolis
  */
 public class JavaScriptTest {
+    
+    public static void main(String[] args) {
+        //DataMgr.createInstance(null);
+    }
 
-    public static void main(String[] args) throws ScriptException {
+    public static void main4(String[] args) throws ScriptException {
         DataMgr.createInstance(null);
-        RuleEngineProvider rep = new RuleEngineProvider(10);
+        RuleEngineProvider rep = RuleEngineProvider.getInstance();
         ScriptEngine engine = rep.getEngine("_suri:Cloudino:CloudRule:1");
         engine = rep.getEngine("_suri:Cloudino:CloudRule:2");
         engine = rep.getEngine("_suri:Cloudino:CloudRule:3");
