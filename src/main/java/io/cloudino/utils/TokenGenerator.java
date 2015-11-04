@@ -15,8 +15,8 @@ public class TokenGenerator {
     private static SecureRandom generator = new SecureRandom();
 
     /**
-     * Returns a Random token, it should have almost no collisions, but always
-     * test for it
+     * Returns a Random token of 25 bytes, it should have almost no collisions, 
+     * but always test for it
      *
      * @return a String token
      */
@@ -26,12 +26,22 @@ public class TokenGenerator {
         return (new BigInteger(1, data)).toString(Character.MAX_RADIX);
     }
     
+    /**
+     * Returns a short Random token of 6 bytes, it might have a collision every 1000 tokens  
+     *
+     * @return a String token
+     */
     public static String nextShortToken() {
         byte[] data = new byte[6];
         generator.nextBytes(data);
         return (new BigInteger(1, data)).toString(Character.MAX_RADIX);
     }
 
+    /**
+     * Returns a 25 bytes pseudo random token with an userID embedded in it
+     * @param userId the UserId number to embed
+     * @return a String token
+     */
     public static String nextTokenByUserId(String userId) {
         BigInteger userInt = new BigInteger(userId, 16);
         byte[] data = new byte[25];
@@ -43,6 +53,11 @@ public class TokenGenerator {
         return (new BigInteger(1, data)).toString(Character.MAX_RADIX);
     }
 
+    /**
+     * Obtains the UserID number from a token with an embedded user
+     * @param token token with the embedded user
+     * @return a String with the UserID number
+     */
     public static String getUserIdFromToken(String token) {
         BigInteger tokenInt = new BigInteger(token, Character.MAX_RADIX);
         byte[] data = new byte[13];
@@ -51,6 +66,13 @@ public class TokenGenerator {
         return (new BigInteger(data)).toString(16);
     }
 
+    /**
+     * Returns a 25 bytes pseudo random token with an userID embedded in it, 
+     * making sure that token is not present in the datasource as authToken
+     * @param userId the UserID number to embed
+     * @param ds satasource to look for existen tokens
+     * @return a String token
+     */
     public static String getNonExistentTokenByUserId(String userId, SWBDataSource ds) {
         try {
             String token = null;

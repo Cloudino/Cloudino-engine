@@ -18,6 +18,7 @@ import org.semanticwb.datamanager.filestore.SWBFileSource;
 
 /**
  * Wrapper for Apache commons fileupload
+ *
  * @author serch
  */
 public class FileUploadUtils {
@@ -25,7 +26,7 @@ public class FileUploadUtils {
     private static final int MAX_MEMORY_SIZE = 512_000;
     private static final int MAX_FILE_SIZE = 5_000_000;
     private static final DiskFileItemFactory factory = new DiskFileItemFactory();
-    private static Logger logger = Logger.getLogger("i.c.u.FileUploadUtils");
+    private static final Logger logger = Logger.getLogger("i.c.u.FileUploadUtils");
 
     static {
         factory.setSizeThreshold(MAX_MEMORY_SIZE);
@@ -33,6 +34,7 @@ public class FileUploadUtils {
 
     /**
      * Initialize, a temporal directory should be provided
+     *
      * @param tmpdir temporal directory
      */
     public static void init(File tmpdir) {
@@ -40,7 +42,9 @@ public class FileUploadUtils {
     }
 
     /**
-     * Copy the Uploaded file to an OutputStream with a maximum size of MAX_FILE_SIZE (5,000,000 bytes)
+     * Copy the Uploaded file to an OutputStream with a maximum size of
+     * MAX_FILE_SIZE (5,000,000 bytes)
+     *
      * @param request request with the file to upload
      * @param outputStream Stream to put the file into
      * @param fileFieldName name of the form field with the file
@@ -53,6 +57,7 @@ public class FileUploadUtils {
 
     /**
      * Copy the Uploaded file to an OutputStream
+     *
      * @param request request with the file to upload
      * @param outputStream Stream to put the file into
      * @param fileFieldName name of the form field with the file
@@ -65,11 +70,7 @@ public class FileUploadUtils {
         upload.setSizeMax(maxFileSize);
         try {
             List<FileItem> items = upload.parseRequest(request);
-            Optional<FileItem> oFileItem = items
-                    .stream()
-                    .filter(
-                            fi -> fi.getFieldName().equalsIgnoreCase(fileFieldName))
-                    .findFirst();
+            Optional<FileItem> oFileItem = getFileItem(items, fileFieldName);
             if (oFileItem.isPresent()) {
                 return processOutputStream(oFileItem.get(), outputStream);
             } else {
@@ -81,8 +82,17 @@ public class FileUploadUtils {
         }
     }
 
+    private static Optional<FileItem> getFileItem(List<FileItem> items, String fileFieldName) {
+        return items
+                .stream()
+                .filter(
+                        fi -> fi.getFieldName().equalsIgnoreCase(fileFieldName))
+                .findFirst();
+    }
+
     /**
      * Copy the contents of a FileItem to an OutputStream
+     *
      * @param fileItem fileItem to read
      * @param outputStream outputStream to write to
      * @return true if OK
@@ -102,8 +112,10 @@ public class FileUploadUtils {
     }
 
     /**
-     * Save an Uploaded file to a known File with a maximum size of MAX_FILE_SIZE (5,000,000 bytes)
-     * If it's possible the Uploaded file just will be moved to File, if not it will be copied
+     * Save an Uploaded file to a known File with a maximum size of
+     * MAX_FILE_SIZE (5,000,000 bytes) If it's possible the Uploaded file just
+     * will be moved to File, if not it will be copied
+     *
      * @param request request with the file to upload
      * @param outputFile File to write the file to
      * @param fileFieldName name of the form field with the file
@@ -115,8 +127,9 @@ public class FileUploadUtils {
     }
 
     /**
-     * Save an Uploaded file to a known File
-     * If it's possible the Uploaded file just will be moved to File, if not it will be copied
+     * Save an Uploaded file to a known File If it's possible the Uploaded file
+     * just will be moved to File, if not it will be copied
+     *
      * @param request request with the file to upload
      * @param outputFile File to write the file to
      * @param fileFieldName name of the form field with the file
@@ -129,11 +142,7 @@ public class FileUploadUtils {
         upload.setSizeMax(maxFileSize);
         try {
             List<FileItem> items = upload.parseRequest(request);
-            Optional<FileItem> oFileItem = items
-                    .stream()
-                    .filter(
-                            fi -> fi.getFieldName().equalsIgnoreCase(fileFieldName))
-                    .findFirst();
+            Optional<FileItem> oFileItem = getFileItem(items, fileFieldName);
             oFileItem.ifPresent(fi -> {
                 try {
                     fi.write(outputFile);
@@ -147,17 +156,13 @@ public class FileUploadUtils {
             return false;
         }
     }
-    
-    public static boolean saveToSWBFileSource(HttpServletRequest request, SWBFileSource file, String fileFieldName, String localName){
+
+    public static boolean saveToSWBFileSource(HttpServletRequest request, SWBFileSource file, String fileFieldName, String localName) {
         ServletFileUpload upload = new ServletFileUpload(factory);
         upload.setSizeMax(file.getMaxSize());
         try {
             List<FileItem> items = upload.parseRequest(request);
-            Optional<FileItem> oFileItem = items
-                    .stream()
-                    .filter(
-                            fi -> fi.getFieldName().equalsIgnoreCase(fileFieldName))
-                    .findFirst();
+            Optional<FileItem> oFileItem = getFileItem(items, fileFieldName);
             oFileItem.ifPresent(fi -> {
                 try {
                     file.storeFile(new SWBFileObject(localName, fi.getContentType(), fi.getInputStream()));

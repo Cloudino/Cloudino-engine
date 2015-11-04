@@ -76,6 +76,13 @@ public class Utils {
         out.close();
     }
 
+    /**
+     * takes a text inputstream and load it into a String in memory
+     * @param is inputstream with the text data
+     * @param charset charset of the textdata
+     * @return a string with the contents of the inpustream
+     * @throws IOException if an error occurs reading the file
+     */
     public static String textInputStreamToString(final InputStream is, final String charset) throws IOException {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(is, charset))) {
             return br.lines().collect(Collectors.joining(System.lineSeparator()));
