@@ -8,6 +8,7 @@ package io.cloudino.engine;
 
 import com.notnoop.apns.APNS;
 import com.notnoop.apns.ApnsService;
+import io.cloudino.rules.scriptengine.RuleEngineProvider;
 import io.cloudino.utils.HexSender;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,6 +19,8 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import org.semanticwb.datamanager.DataMgr;
 import org.semanticwb.datamanager.DataObject;
+import org.semanticwb.datamanager.SWBDataSource;
+import org.semanticwb.datamanager.SWBScriptEngine;
 
 /**
  *
@@ -25,11 +28,12 @@ import org.semanticwb.datamanager.DataObject;
  */
 public class Device 
 {
-    private static final Set<DeviceObserver> observers =new CopyOnWriteArraySet<DeviceObserver>();
+    private final Set<DeviceObserver> observers =new CopyOnWriteArraySet<DeviceObserver>();
     private DeviceMgr mgr=null;
     private String id;
     private DeviceConn con=null;
     private DataObject data=null;
+    private DataObject user=null;
     
     private long createdTime=System.currentTimeMillis();
     private long connectedTime=System.currentTimeMillis();
@@ -56,6 +60,22 @@ public class Device
     public boolean isConnected()
     {
         return con!=null;
+    }
+
+    public DataObject getUser() {
+        if(user==null)
+        {
+            SWBScriptEngine engine=DataMgr.getUserScriptEngine("/cloudino.js",null);
+            SWBDataSource ds=engine.getDataSource("User"); 
+            try
+            {
+                user=ds.fetchObjById(data.getString("user"));
+            }catch(IOException e)
+            {
+                e.printStackTrace();
+            }
+        }
+        return user;
     }
     
     protected void setConnection(DeviceConn con)
@@ -109,7 +129,7 @@ public class Device
     
     protected void receive(String topic,String msg)
     {
-        System.out.println("receive->Topic:"+topic+" msg:"+msg);
+        System.out.println(id+"receive->Topic:"+topic+" msg:"+msg);
         Iterator<DeviceObserver> it=observers.iterator();
         while (it.hasNext()) {
             DeviceObserver observer = it.next();
@@ -124,11 +144,20 @@ public class Device
         //TODO: Validar cuales llevan PN
         pushNotification(topic, msg);
         
+        try
+        {
+            DataObject user=getUser();
+            RuleEngineProvider.invokeEvent(RuleEngineProvider.ONDEVICE_MESSAGE_EVENT, user, new DataObject().addParam("device", getId()), topic, msg);
+        }catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        
     }  
     
     protected void receiveLog(String data)
     {
-        System.out.println("receive->Log:"+data);
+        System.out.println(id+"receive->Log:"+data);
         Iterator<DeviceObserver> it=observers.iterator();
         while (it.hasNext()) {
             DeviceObserver observer = it.next();
@@ -144,7 +173,7 @@ public class Device
     
     protected void receiveCompiler(String data)
     {
-        System.out.println("receive->Log:"+data);
+        System.out.println(id+"receive->Compiler:"+data);
         Iterator<DeviceObserver> it=observers.iterator();
         while (it.hasNext()) {
             DeviceObserver observer = it.next();

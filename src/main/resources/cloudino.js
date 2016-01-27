@@ -1,7 +1,7 @@
 //******* DataStores ***************
 
 eng.config={
-    devicePort:9595,
+    devicePort:9494,
     arduinoPath:"/Applications/Arduino.app/Contents/Java",
     arduinoLib:"/Applications/Arduino.app/Contents/Java",
     usersWorkPath:"/cloudino/users",

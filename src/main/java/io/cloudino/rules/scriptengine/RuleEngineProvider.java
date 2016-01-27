@@ -32,6 +32,8 @@ public class RuleEngineProvider
     private final LinkedList hardCache = new LinkedList();
     private final ReferenceQueue queue = new ReferenceQueue();
     private static RuleEngineProvider instance=null;
+    
+    public static String ONDEVICE_MESSAGE_EVENT="cdino_ondevice_message";
 
     private RuleEngineProvider() {
         this(100);
@@ -142,7 +144,8 @@ public class RuleEngineProvider
     }
 
     private void serializeAndSave(String id, ScriptEngine scriptEngine) {
-        try { System.out.println("Serializing....");
+        try { 
+            System.out.println("Serializing....");
             SWBScriptEngine engine = DataMgr.getUserScriptEngine("/cloudino.js", null);
             SWBDataSource ds = engine.getDataSource("CloudRule");
             DataObject cloudRule = ds.fetchObjById(id);
@@ -162,23 +165,40 @@ public class RuleEngineProvider
         }
     }
     
-    public static void invokeEvent(String type, DataObject user, String context, DataObject params, Object... functParams) throws IOException
+    /**
+     * Invoca todos los eventos que cuplan con el criterio establecido
+     * @param type
+     * @param user
+     * @param params
+     * @param functParams
+     * @throws IOException 
+     */
+    public static void invokeEvent(String type, DataObject user, DataObject params, Object... functParams) throws IOException
     {
         RuleEngineProvider rep = RuleEngineProvider.getInstance();
-        DataList<DataObject> ret=rep.getOnEvents(type, user, context, params);
+        DataList<DataObject> ret=rep.getOnEvents(type, user, params);
         
-        for(DataObject o : ret)
+        for(DataObject obj : ret)
         {                
-            ScriptEngine engine = rep.getEngine(o.getString("cloudRule"));
+            ScriptEngine engine = rep.getEngine(obj.getString("cloudRule"));
             ScriptObjectMirror evtents=(ScriptObjectMirror)engine.get("_cdino_events");        
-            ScriptObjectMirror event=(ScriptObjectMirror)evtents.getSlot(o.getInt("arrayIndex"));
+            ScriptObjectMirror event=(ScriptObjectMirror)evtents.getSlot(obj.getInt("arrayIndex"));
             event.callMember("funct", functParams);
             //out.println();        
         }        
     }
     
-    private DataList getOnEvents(String type, DataObject user, String context, DataObject params) throws IOException
+    /**
+     * Regresa CloudRuleEvent que cumplan con el criterio definido
+     * @param type
+     * @param user
+     * @param params
+     * @return
+     * @throws IOException 
+     */
+    private DataList getOnEvents(String type, DataObject user, DataObject params) throws IOException
     {
+        String context=user.getString("userContext");
         SWBScriptEngine engine = DataMgr.getUserScriptEngine("/cloudino.js", user);
         SWBDataSource ds = engine.getDataSource("CloudRuleEvent");
         DataObject obj=new DataObject();
