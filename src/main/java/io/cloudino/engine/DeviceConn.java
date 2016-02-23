@@ -19,10 +19,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class DeviceConn
 {
-    public static int SEP='|';
-    public static int MSEP='M';
-    public static int LSEP='L';
-    public static int SSEP='S';
+    private static int SEP='|';         //Separator
+    private static int MSEP='M';        //Message separator
+    private static int LSEP='L';        //Log separator
+//    private static int JSEP='J';        //JS Command separator
+    private static int SSEP='S';        //String Separator    
     
     private Socket sock = null;
     private DeviceServer server = null;
@@ -46,7 +47,7 @@ public class DeviceConn
     /** Creates a new instance of SConn */
     public DeviceConn(Socket sock, DeviceServer server) throws IOException
     {
-        System.out.println("Connection open");
+        //System.out.println("Connection open");
         this.sock = sock;
         this.server = server;
         this.outputStream=sock.getOutputStream();
@@ -65,7 +66,7 @@ public class DeviceConn
                 if(System.currentTimeMillis()-time>10000)
                 {
                     time=System.currentTimeMillis();
-                    System.out.println("Ping");
+                    //System.out.println("Ping");
                     write((byte)'_');
                 }
                 while(inputStream.available()>0)
@@ -86,7 +87,7 @@ public class DeviceConn
                     {
                         String topic=new String(cmd.topic,"utf8");
                         String msg=new String(cmd.msg,"utf8");
-                        System.out.println("Topic:"+topic+":"+msg);
+                        //System.out.println("Topic:"+topic+":"+msg);
                         if(topic.equals("$ID"))
                         {
                             device=DeviceMgr.getInstance().getDeviceByAuthToken(msg);
@@ -101,6 +102,9 @@ public class DeviceConn
                     }else if(cmd.type==1)               //LOG
                     {
                         device.receiveLog(new String(cmd.topic,"utf8"));
+//                    }else if(cmd.type==2)               //LOG
+//                    {
+//                        device.receiveJSResponse(new String(cmd.topic,"utf8"));
                     }
                 }
             }
@@ -115,11 +119,16 @@ public class DeviceConn
     public void post(String topic, String msg)
     {
         write(""+(char)SEP+(char)MSEP+topic.getBytes().length+(char)SEP+topic+(char)SSEP+msg.getBytes().length+(char)SEP+msg);
-    }     
+    } 
+    
+//    public void postJSCommand(String command)
+//    {
+//        write(""+(char)SEP+(char)JSEP+command.getBytes().length+(char)SEP+command);
+//    }       
     
     public void write(String str)
     {
-        System.out.println("Write String:"+str);
+        //System.out.println("write_str:"+str);
         try
         {
             if(!isClosed())
@@ -138,6 +147,7 @@ public class DeviceConn
     
     public void write(byte data[]) throws IOException
     {
+        System.out.println("write_data:"+new String(data));
         try
         {
             if(!isClosed())
@@ -203,17 +213,18 @@ public class DeviceConn
 
 class Command
 {
-    byte type=0;                //0=message, 1=log
+    byte type=0;                //0=message, 1=log, 2=jscmd
     byte topic[];
     byte msg[];
 }
 
 class CommandBuffer
 {
-    private static int SEP='|';
-    private static int MSEP='M';
-    private static int LSEP='L';
-    private static int SSEP='S';    
+    private static int SEP='|';         //Separator
+    private static int MSEP='M';        //Message separator
+    private static int LSEP='L';        //Log separator
+//    private static int JSEP='J';        //JS Command separator
+    private static int SSEP='S';        //String Separator
     
     private static long TIMEOUT=2000;
     private ConcurrentLinkedQueue<Command> commands=new ConcurrentLinkedQueue();
@@ -245,6 +256,10 @@ class CommandBuffer
             {
                 cmd.type=1;
                 status++;
+//            }else if(b==JSEP)
+//            {
+//                cmd.type=2;
+//                status++;
             }else
             {
                 reset();
@@ -270,7 +285,7 @@ class CommandBuffer
             if(bytecont==cmd.topic.length)
             {
                 status++;
-                if(cmd.type==1)
+                if(cmd.type==1)// || cmd.type==2 )     //log o jscmd termina el comando
                 {
                     commands.add(cmd);
                     reset();

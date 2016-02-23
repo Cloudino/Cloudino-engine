@@ -67,7 +67,7 @@ public class WebSocketServer implements DeviceObserver
 
     @OnMessage
     public void incoming(String message) {
-        System.out.println("incoming:"+message);
+        //System.out.println("incoming:"+message);
         if(device!=null)device.postRaw(message);
     }
 
@@ -91,5 +91,10 @@ public class WebSocketServer implements DeviceObserver
     public void notifyCompiler(String data) throws IOException {
         session.getBasicRemote().sendText("cmp:"+data);
     }
+
+//    @Override
+//    public void notifyJSResponse(String data) throws IOException {
+//        session.getBasicRemote().sendText("jsr:"+data);
+//    }
     
 }

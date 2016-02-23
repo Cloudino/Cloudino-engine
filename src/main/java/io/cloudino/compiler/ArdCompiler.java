@@ -84,13 +84,13 @@ public class ArdCompiler
         {
             byte r[]=new byte[err.available()];
             err.read(r);
-            ret.append(new String(r));
+            ret.append(new String(r,"utf8"));
         }  
         if(in.available()>0)
         {
             byte r[]=new byte[in.available()];
             in.read(r);
-            ret.append(new String(r));
+            ret.append(new String(r,"utf8"));
         }     
         return ret.toString();
     }

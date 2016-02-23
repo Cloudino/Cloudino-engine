@@ -67,6 +67,7 @@ eng.dataSources["Device"]={
         {name:"type",title:"Type",type:"string"},
         {name:"user",title:"User",type:"string"},
         {name:"sketcher",title:"Sketcher",type:"string"},
+        {name:"jscode",title:"JSCode",type:"string"},
     ],    
 };
 

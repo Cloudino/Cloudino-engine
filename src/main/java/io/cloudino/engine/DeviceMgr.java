@@ -107,7 +107,7 @@ public class DeviceMgr
      */
     public Device getDeviceByAuthToken(String token)
     {
-        System.out.println("token:"+token);
+        //System.out.println("token:"+token);
         String id=null;
         try
         {
@@ -118,8 +118,8 @@ public class DeviceMgr
             query.put("data", data);
             data.put("authToken", token);
             DataObject ret=ds.fetch(query);
-            System.out.println("query:"+query);
-            System.out.println("ret:"+ret);
+            //System.out.println("query:"+query);
+            //System.out.println("ret:"+ret);
             //engine.close();
             if(ret!=null)
             {
@@ -129,7 +129,7 @@ public class DeviceMgr
                     id=list.getDataObject(0).getNumId();
                 }
             }
-            System.out.println("id:"+id);
+            //System.out.println("id:"+id);
         }catch(Exception e)
         {
             e.printStackTrace();

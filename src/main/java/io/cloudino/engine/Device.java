@@ -127,9 +127,14 @@ public class Device
         service.push(myToken, myPayload);        
     }
     
+    /**
+     * Receive message from de device
+     * @param topic
+     * @param msg 
+     */
     protected void receive(String topic,String msg)
     {
-        System.out.println(id+"receive->Topic:"+topic+" msg:"+msg);
+        //System.out.println(id+"receive->Topic:"+topic+" msg:"+msg);
         Iterator<DeviceObserver> it=observers.iterator();
         while (it.hasNext()) {
             DeviceObserver observer = it.next();
@@ -142,7 +147,10 @@ public class Device
             }
         }
         //TODO: Validar cuales llevan PN
-        pushNotification(topic, msg);
+        if(!topic.startsWith("$CDINO"))
+        {
+            pushNotification(topic, msg);
+        }
         
         try
         {
@@ -155,9 +163,13 @@ public class Device
         
     }  
     
+    /**
+     * Receive Log data from de device
+     * @param data 
+     */
     protected void receiveLog(String data)
     {
-        System.out.println(id+"receive->Log:"+data);
+        //System.out.println(id+"receive->Log:"+data);
         Iterator<DeviceObserver> it=observers.iterator();
         while (it.hasNext()) {
             DeviceObserver observer = it.next();
@@ -169,11 +181,31 @@ public class Device
                 e.printStackTrace();
             }
         }
-    }    
+    }   
+    
+//    /**
+//     * Receive JavaScript response from the device
+//     * @param data 
+//     */
+//    protected void receiveJSResponse(String data)
+//    {
+//        System.out.println(id+"receive->JSResp:"+data);
+//        Iterator<DeviceObserver> it=observers.iterator();
+//        while (it.hasNext()) {
+//            DeviceObserver observer = it.next();
+//            try
+//            {
+//                observer.notifyJSResponse(data);
+//            }catch(Exception e)
+//            {
+//                e.printStackTrace();
+//            }
+//        }
+//    }      
     
     protected void receiveCompiler(String data)
     {
-        System.out.println(id+"receive->Compiler:"+data);
+        //System.out.println(id+"receive->Compiler:"+data);
         Iterator<DeviceObserver> it=observers.iterator();
         while (it.hasNext()) {
             DeviceObserver observer = it.next();
@@ -187,9 +219,14 @@ public class Device
         }
     }     
     
+    /**
+     * Send data raw to device
+     * @param msg
+     * @return 
+     */
     public boolean postRaw(String msg)
     {
-        System.out.println("postRaw->"+msg);
+        //System.out.println("postRaw->"+msg);
         try
         {
             if(con!=null)
@@ -204,9 +241,15 @@ public class Device
         return false;
     }
     
+    /**
+     * Send message to device
+     * @param topic
+     * @param msg
+     * @return 
+     */
     public boolean post(String topic,String msg)
     {
-        System.out.println("post->Topic:"+topic+" msg:"+msg);
+        //System.out.println("post->Topic:"+topic+" msg:"+msg);
         try
         {
             if(con!=null)
@@ -220,6 +263,28 @@ public class Device
         }
         return false;
     }
+    
+//    /**
+//     * Send Javascript Coommand to device
+//     * @param command
+//     * @return 
+//     */
+//    public boolean postJSCommand(String command)
+//    {
+//        System.out.println("post->JSCommand:"+command);
+//        try
+//        {
+//            if(con!=null)
+//            {
+//                con.postJSCommand(command);
+//                return true;
+//            }
+//        }catch(Exception e)
+//        {
+//            e.printStackTrace();
+//        }
+//        return false;
+//    }    
     
     public void registerObserver(DeviceObserver obs)
     {
@@ -235,6 +300,10 @@ public class Device
         free();
     }
     
+    /**
+     * get Dataobject with the device information
+     * @return 
+     */
     public DataObject getData()
     {
         return data;
@@ -265,7 +334,7 @@ public class Device
         };
         
         if(con!=null)con.setUploading(true);
-        System.out.println("sendHex...");
+        //System.out.println("sendHex...");
         boolean ret=true;
         if(isConnected())
         {
@@ -274,12 +343,12 @@ public class Device
             {
                 io.cloudino.compiler_.ArdCompiler cmp=io.cloudino.compiler_.ArdCompiler.getInstance();
                 String type=getData().getString("type");
-                System.out.println("type:"+type);
+                //System.out.println("type:"+type);
                 io.cloudino.compiler_.ArdDevice dvc=cmp.getDevices().get(type);
-                System.out.println("dvc:"+dvc);
+                //System.out.println("dvc:"+dvc);
                 if(dvc!=null)speed=dvc.speed;
             }
-            System.out.println("speed:"+speed);
+            //System.out.println("speed:"+speed);
             
             wout.write("Cloudino remote programmer 2015 (v0.1)\n");
             HexSender obj=new HexSender();
