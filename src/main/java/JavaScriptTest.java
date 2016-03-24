@@ -8,6 +8,7 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.semanticwb.datamanager.DataMgr;
+import org.semanticwb.datamanager.DataObject;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -26,13 +27,14 @@ public class JavaScriptTest {
 
     public static void main4(String[] args) throws ScriptException {
         DataMgr.createInstance(null);
+        DataObject user=new DataObject();
         RuleEngineProvider rep = RuleEngineProvider.getInstance();
-        ScriptEngine engine = rep.getEngine("_suri:Cloudino:CloudRule:1");
-        engine = rep.getEngine("_suri:Cloudino:CloudRule:2");
-        engine = rep.getEngine("_suri:Cloudino:CloudRule:3");
-        engine = rep.getEngine("_suri:Cloudino:CloudRule:4");
-        engine = rep.getEngine("_suri:Cloudino:CloudRule:5");
-        engine = rep.getEngine("_suri:Cloudino:CloudRule:6");
+        ScriptEngine engine = rep.getEngine("_suri:Cloudino:CloudRule:1", user);
+        engine = rep.getEngine("_suri:Cloudino:CloudRule:2",user);
+        engine = rep.getEngine("_suri:Cloudino:CloudRule:3",user);
+        engine = rep.getEngine("_suri:Cloudino:CloudRule:4",user);
+        engine = rep.getEngine("_suri:Cloudino:CloudRule:5",user);
+        engine = rep.getEngine("_suri:Cloudino:CloudRule:6",user);
         ScriptObjectMirror bind = ((ScriptObjectMirror) engine.getBindings(ScriptContext.ENGINE_SCOPE));
         ScriptEngine[] arr1 = useLotsOfMemory();
         System.gc();
@@ -41,7 +43,7 @@ public class JavaScriptTest {
         arr1[500].eval("print('memorias....')");
         arr1=null;
         System.gc();
-        engine = rep.getEngine("_suri:Cloudino:CloudRule:1");
+        engine = rep.getEngine("_suri:Cloudino:CloudRule:1",user);
         bind = ((ScriptObjectMirror) engine.getBindings(ScriptContext.ENGINE_SCOPE));
         ((ScriptObjectMirror) ((ScriptObjectMirror) bind.get("events")).getSlot(0)).callMember("funct", "hola");
     }
@@ -50,14 +52,14 @@ public class JavaScriptTest {
         StringBuilder ret = new StringBuilder();
         if (obj instanceof ScriptObjectMirror) {
             ScriptObjectMirror om = (ScriptObjectMirror) obj;
-//            System.out.println(om+" isArray "+om.isArray());
-//            System.out.println(om+" isEmpty "+om.isEmpty());
-//            System.out.println(om+" isExtensible "+om.isExtensible());
-//            System.out.println(om+" isFrozen "+om.isFrozen());
-//            System.out.println(om+" isFunction "+om.isFunction());
-//            System.out.println(om+" isSealed "+om.isSealed());
-//            System.out.println(om+" isStrictFunction "+om.isStrictFunction());            
-//            System.out.println(om+" getOwnKeys "+Arrays.asList(om.getOwnKeys(true)));  
+            //System.out.println(om+" isArray "+om.isArray());
+            //System.out.println(om+" isEmpty "+om.isEmpty());
+            //System.out.println(om+" isExtensible "+om.isExtensible());
+            //System.out.println(om+" isFrozen "+om.isFrozen());
+            //System.out.println(om+" isFunction "+om.isFunction());
+            //System.out.println(om+" isSealed "+om.isSealed());
+            //System.out.println(om+" isStrictFunction "+om.isStrictFunction());            
+            //System.out.println(om+" getOwnKeys "+Arrays.asList(om.getOwnKeys(true)));  
 
             if (om.isFunction()) {
                 ret.append(om.toString());

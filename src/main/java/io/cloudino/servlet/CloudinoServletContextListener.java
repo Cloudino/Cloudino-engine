@@ -5,6 +5,7 @@
  */
 package io.cloudino.servlet;
 
+import io.cloudino.server.DeviceSSLServer;
 import io.cloudino.server.DeviceServer;
 import io.cloudino.utils.FileUploadUtils;
 import java.io.File;
@@ -32,6 +33,11 @@ public class CloudinoServletContextListener implements ServletContextListener {
         DeviceServer server = new DeviceServer();
         server.setPort(engine.getScriptObject().get("config").getInt("devicePort"));
         server.start();   
+        
+        DeviceSSLServer serverssl = new DeviceSSLServer();
+        serverssl.setPort(engine.getScriptObject().get("config").getInt("deviceSSLPort"));
+        serverssl.start();   
+        
 //        SWBDataSource ds=engine.getDataSource("Device");
 //        try
 //        {

@@ -50,7 +50,7 @@ public class WebSocketServer implements DeviceObserver
             device=DeviceMgr.getInstance().getDevice(id);
             if(device!=null)device.registerObserver(this);
         }
-        System.out.println("WebSockets Connection:"+id+" device:"+device);
+        //System.out.println("WebSockets Connection:"+id+" device:"+device);
         connections.add(this);
     }
 
@@ -62,7 +62,7 @@ public class WebSocketServer implements DeviceObserver
         {
             device.removeObserver(this);
         }
-        System.out.println("end:"+device);
+        //System.out.println("end:"+device);
     }
 
     @OnMessage

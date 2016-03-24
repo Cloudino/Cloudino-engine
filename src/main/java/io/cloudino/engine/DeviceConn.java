@@ -6,18 +6,16 @@
 
 package io.cloudino.engine;
 
-import io.cloudino.server.DeviceServer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.Socket;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  *
  * @author javiersolis
  */
-public class DeviceConn
+public abstract class DeviceConn
 {
     private static int SEP='|';         //Separator
     private static int MSEP='M';        //Message separator
@@ -25,16 +23,13 @@ public class DeviceConn
 //    private static int JSEP='J';        //JS Command separator
     private static int SSEP='S';        //String Separator    
     
-    private Socket sock = null;
-    private DeviceServer server = null;
-    private boolean running = true;
-    private Device device=null;
-    private OutputStream outputStream=null;
-    private InputStream inputStream=null;
-    private long time=System.currentTimeMillis();
-    private CommandBuffer buffer=null;
+    protected Device device=null;
+    protected long time=System.currentTimeMillis();
+    protected CommandBuffer buffer=null;    
+    protected boolean uploading=false;
     
-    private boolean uploading=false;
+    protected OutputStream outputStream=null;
+    protected InputStream inputStream=null;    
 
     public void setUploading(boolean uploading) {
         this.uploading = uploading;
@@ -44,77 +39,16 @@ public class DeviceConn
         return uploading;
     }
     
-    /** Creates a new instance of SConn */
-    public DeviceConn(Socket sock, DeviceServer server) throws IOException
+    /**
+     * Create an instance of Device Conenction
+     * @param sock
+     * @param server
+     * @throws IOException 
+     */
+    public DeviceConn() throws IOException
     {
-        //System.out.println("Connection open");
-        this.sock = sock;
-        this.server = server;
-        this.outputStream=sock.getOutputStream();
-        this.inputStream = sock.getInputStream();
-        this.buffer=new CommandBuffer(){
-        };
+        this.buffer=new CommandBuffer();
     }  
-    
-    public boolean loop()
-    {
-        boolean ret=false;
-        try
-        {
-            if(!uploading)
-            {
-                if(System.currentTimeMillis()-time>10000)
-                {
-                    time=System.currentTimeMillis();
-                    //System.out.println("Ping");
-                    write((byte)'_');
-                }
-                while(inputStream.available()>0)
-                {
-                    time=System.currentTimeMillis();
-                    int b=inputStream.read();
-                    if(b==-1)
-                    {
-                        close();
-                        break;
-                    }
-                    buffer.write(b);
-                }
-                if(buffer.hasCommand())
-                {
-                    Command cmd=buffer.getCommand();
-                    if(cmd.type==0)
-                    {
-                        String topic=new String(cmd.topic,"utf8");
-                        String msg=new String(cmd.msg,"utf8");
-                        //System.out.println("Topic:"+topic+":"+msg);
-                        if(topic.equals("$ID"))
-                        {
-                            device=DeviceMgr.getInstance().getDeviceByAuthToken(msg);
-                            device.setConnection(this);
-                        }else
-                        {
-                            if(device!=null)
-                            {
-                                device.receive(topic, msg);
-                            }
-                        }      
-                    }else if(cmd.type==1)               //LOG
-                    {
-                        device.receiveLog(new String(cmd.topic,"utf8"));
-//                    }else if(cmd.type==2)               //LOG
-//                    {
-//                        device.receiveJSResponse(new String(cmd.topic,"utf8"));
-                    }
-                }
-            }
-        } catch (Exception e)
-        {
-            System.out.println("Clossing Connection...");
-            close();            
-        }     
-        return ret;
-    }    
     
     public void post(String topic, String msg)
     {
@@ -139,15 +73,14 @@ public class DeviceConn
             else close();
         }catch(IOException e)
         {
-            System.out.println("Clossing Connection...");
+            //System.out.println("Clossing Connection...");
             close();
         }
-            
     }
     
     public void write(byte data[]) throws IOException
     {
-        System.out.println("write_data:"+new String(data));
+        //System.out.println("write_data:"+new String(data));
         try
         {
             if(!isClosed())
@@ -158,9 +91,9 @@ public class DeviceConn
             else close();
         }catch(IOException e)
         {
-            System.out.println("Clossing Connection...");
+            //System.out.println("Clossing Connection...");
             close();
-        }        
+        }
     }   
     
     public void write(byte b) throws IOException
@@ -171,44 +104,25 @@ public class DeviceConn
             else close();
         }catch(IOException e)
         {
-            System.out.println("Clossing Connection...");
+            //System.out.println("Clossing Connection...");
             close();
         }
-    }      
+    }  
     
-    public boolean isClosed()
-    {
-        return !running || !sock.isConnected() || sock.isClosed();
-    }
+    public abstract boolean isClosed();
     
-    public void close()
-    {
-        running=false;
-        try
-        {
-            if(sock!=null && !sock.isClosed())
-            {
-                sock.close();
-            }
-            if(device!=null)
-            {
-                Device tmp=device;
-                device=null;
-                tmp.closeConnection();
-            }            
-        }catch(Exception e)
-        {
-            e.printStackTrace();
-        }
-    }
-
-    protected InputStream getInputStream() {
+    public abstract void close();
+    
+    public InputStream getInputStream() {
         return inputStream;
     }
 
-    protected OutputStream getOutputStream() {
+    public OutputStream getOutputStream() {
         return outputStream;
     }
+    
+    public abstract String getInetAddress();
+    
 }
 
 class Command
@@ -236,6 +150,7 @@ class CommandBuffer
     private int bytecont=0;
     
     public void write(int b) {
+        //System.out.print((char)b);
         ltime=System.currentTimeMillis();
         
         if(status==0)                       //inicio de trama
@@ -345,7 +260,6 @@ class CommandBuffer
     public Command getCommand()
     {
         return commands.poll();
-    }
-    
+    }    
     
 }

@@ -34,6 +34,8 @@ public class RuleEngineProvider
     private static RuleEngineProvider instance=null;
     
     public static String ONDEVICE_MESSAGE_EVENT="cdino_ondevice_message";
+    public static String ONCHANGE_CONTEXT="cdino_onchange_context";
+    public static String ONDEVICE_CONNECTION="cdino_ondevice_connection";
 
     private RuleEngineProvider() {
         this(100);
@@ -58,7 +60,9 @@ public class RuleEngineProvider
         return instance;
     }
 
-    public ScriptEngine getEngine(String id) {
+    public ScriptEngine getEngine(String id, DataObject user) {
+        //System.out.println("getEngine:"+id);
+        
         ScriptEngine result = null;
         SoftReference<ScriptEngine> soft_ref = (SoftReference) hash.get(id);
         if (soft_ref != null) {
@@ -77,11 +81,13 @@ public class RuleEngineProvider
         //if not in cache recover-create engine
         if (null == result) {
             result = retreiveFromSerialized(id);
+            if(result!=null)result.put("_cdino_user", user);
         }
         if (null == result) {
             result = create(id);
+            if(result!=null)result.put("_cdino_user", user);
         }
-        if (null != result) {
+        if (null != result) {            
             put(id, result);
         }
         return result;
@@ -99,6 +105,12 @@ public class RuleEngineProvider
         processQueue();
         return (SoftValue) hash.put(key, new SoftValue(value, key, queue));
     }
+    
+    public ScriptEngine removeEngine(String id)
+    {
+        //System.out.println("removeEngine:"+id);
+        return remove(id);
+    }
 
     private ScriptEngine remove(Object key) {
         processQueue();
@@ -110,6 +122,7 @@ public class RuleEngineProvider
         ScriptEngine result = null;
         try {
             String state = getStringFromCloudRule(id, "state");
+            //System.out.println("CloudRule state:"+state);
             if (null != state) {
                 result = NashornEngineFactory.getEngine(300, TimeUnit.MILLISECONDS);
                 result.eval(state);
@@ -125,6 +138,7 @@ public class RuleEngineProvider
         ScriptEngine result = null;
         try {
             String script = getStringFromCloudRule(id, "script");
+            //System.out.println("CloudRule script:"+script);
             if (null != script) {
                 result = NashornEngineFactory.getEngine(300, TimeUnit.MILLISECONDS);
                 result.eval(script);
@@ -139,19 +153,21 @@ public class RuleEngineProvider
     private String getStringFromCloudRule(String id, String field) throws IOException {
         SWBScriptEngine engine = DataMgr.getUserScriptEngine("/cloudino.js", null);
         SWBDataSource ds = engine.getDataSource("CloudRule");
-        DataObject cloudRule = ds.fetchObjById(id);
-        return cloudRule.getString(field);
+        DataObject cloudRule = ds.fetchObjById(id);        
+        //System.out.println("getStringFromCloudRule: "+field+" "+cloudRule.getString(field));
+        return cloudRule!=null?cloudRule.getString(field):null;
     }
 
     private void serializeAndSave(String id, ScriptEngine scriptEngine) {
         try { 
-            System.out.println("Serializing....");
+            //System.out.println("Serializing....");
             SWBScriptEngine engine = DataMgr.getUserScriptEngine("/cloudino.js", null);
             SWBDataSource ds = engine.getDataSource("CloudRule");
             DataObject cloudRule = ds.fetchObjById(id);
             cloudRule.put("state", NashornEngineFactory.serialize(scriptEngine.getBindings(ScriptContext.ENGINE_SCOPE)));
             ds.updateObj(cloudRule);
         } catch (IOException ioe) {
+            ioe.printStackTrace();
         }
     }
 
@@ -167,24 +183,24 @@ public class RuleEngineProvider
     
     /**
      * Invoca todos los eventos que cuplan con el criterio establecido
-     * @param type
-     * @param user
-     * @param params
+     * @param events
      * @param functParams
      * @throws IOException 
      */
-    public static void invokeEvent(String type, DataObject user, DataObject params, Object... functParams) throws IOException
+    public static void invokeEvent(DataList<DataObject> events, DataObject user, Object... functParams) throws IOException
     {
         RuleEngineProvider rep = RuleEngineProvider.getInstance();
-        DataList<DataObject> ret=rep.getOnEvents(type, user, params);
-        
-        for(DataObject obj : ret)
+        for(DataObject obj : events)
         {                
-            ScriptEngine engine = rep.getEngine(obj.getString("cloudRule"));
-            ScriptObjectMirror evtents=(ScriptObjectMirror)engine.get("_cdino_events");        
-            ScriptObjectMirror event=(ScriptObjectMirror)evtents.getSlot(obj.getInt("arrayIndex"));
-            event.callMember("funct", functParams);
-            //out.println();        
+            ScriptEngine engine = rep.getEngine(obj.getString("cloudRule"),user);
+            if(engine!=null)
+            {
+                ScriptObjectMirror evtents=(ScriptObjectMirror)engine.get("_cdino_events");        
+                ScriptObjectMirror event=(ScriptObjectMirror)evtents.getSlot(obj.getInt("arrayIndex"));
+                //System.out.println("event:"+event);
+                event.callMember("funct", functParams);
+                //out.println();        
+            }
         }        
     }
     
@@ -196,7 +212,7 @@ public class RuleEngineProvider
      * @return
      * @throws IOException 
      */
-    private DataList getOnEvents(String type, DataObject user, DataObject params) throws IOException
+    public DataList getOnEvents(String type, DataObject user, String devid) throws IOException
     {
         String context=user.getString("userContext");
         SWBScriptEngine engine = DataMgr.getUserScriptEngine("/cloudino.js", user);
@@ -204,7 +220,8 @@ public class RuleEngineProvider
         DataObject obj=new DataObject();
         DataObject data=obj.addSubObject("data").addParam("type", type).addParam("user", user.getId());
         if(context!=null)data.addParam("context", context);
-        data.addParam("params", params);
+        data.addParam("params.device", devid);
+        //System.out.println("getOnEvents:"+obj);
         DataObject ret=ds.fetch(obj);
         return ret.getDataObject("response").getDataList("data");
     }  

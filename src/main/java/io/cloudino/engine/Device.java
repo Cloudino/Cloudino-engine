@@ -6,17 +6,19 @@
 
 package io.cloudino.engine;
 
-import com.notnoop.apns.APNS;
-import com.notnoop.apns.ApnsService;
 import io.cloudino.rules.scriptengine.RuleEngineProvider;
+import io.cloudino.servlet.WebSocketUserServer;
 import io.cloudino.utils.HexSender;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import org.semanticwb.datamanager.DataList;
 import org.semanticwb.datamanager.DataMgr;
 import org.semanticwb.datamanager.DataObject;
 import org.semanticwb.datamanager.SWBDataSource;
@@ -34,10 +36,13 @@ public class Device
     private DeviceConn con=null;
     private DataObject data=null;
     private DataObject user=null;
+    private String inetAddress;
     
     private long createdTime=System.currentTimeMillis();
     private long connectedTime=System.currentTimeMillis();
-
+    
+    private Map<String,DataList<DataObject>> events=new ConcurrentHashMap();
+    
     public Device(String id, DataObject data, DeviceMgr mgr) 
     {
         this.id=id;
@@ -82,6 +87,25 @@ public class Device
     {
         this.con=con;
         connectedTime=System.currentTimeMillis();
+        inetAddress=con.getInetAddress();
+        
+        try
+        {
+            DataList<DataObject> events=getEvents(RuleEngineProvider.ONDEVICE_CONNECTION);   
+            //System.out.println("setConnection events:"+events);
+            DataList<DataObject> filter=new DataList();            
+            for(DataObject obj:events)
+            {
+                if("connected".equals(obj.getDataObject("params").getString("action")))
+                {
+                    filter.add(obj);
+                }
+            }            
+            RuleEngineProvider.invokeEvent(filter, getUser());
+        }catch(Exception e)
+        {
+            e.printStackTrace();
+        }                                
     }
     
     protected void closeConnection()
@@ -92,39 +116,29 @@ public class Device
             this.con=null;
             tmp.close();
             free();
+            try
+            {
+                DataList<DataObject> events=getEvents(RuleEngineProvider.ONDEVICE_CONNECTION);   
+                //System.out.println("closeConnection events:"+events);
+                DataList<DataObject> filter=new DataList();            
+                for(DataObject obj:events)
+                {
+                    if("disconnected".equals(obj.getDataObject("params").getString("action")))
+                    {
+                        filter.add(obj);
+                    }
+                }            
+                RuleEngineProvider.invokeEvent(filter, getUser());
+            }catch(Exception e)
+            {
+                e.printStackTrace();
+            }            
         }
     }
     
     protected void free()
     {
         if(this.con==null && observers.isEmpty())mgr.freeDevice(id);
-    }
-    
-    public void pushNotification(String topic, String msg)
-    {
-        //TODO:configurar esto
-        String myCertPath = DataMgr.getApplicationPath()+"/WEB-INF/classes/apn.p12";
-        String myPassword = "cloudino";
-        //TODO:registrar Token
-        String myToken = "25de509de97a9efafaee322eefdb6f051d84580d67830849e350e72ff230b66c";
-        if(!"_suri:Cloudino:User:55e0d655e4b0cb620e1910e5".equals(data.getString("user")))
-        {
-            return;
-        }
-
-        ApnsService service = APNS.newService()
-                .withCert(myCertPath, myPassword)
-                .withSandboxDestination()
-                .build();
-        String myPayload = APNS.newPayload()
-                //.alertBody(args[0])
-                .alertAction(topic)
-                .alertTitle("Cloudino")
-                .alertBody(topic+":"+msg)
-                .badge(1)
-                .sound("default")
-                .build();
-        service.push(myToken, myPayload);        
     }
     
     /**
@@ -146,19 +160,19 @@ public class Device
                 e.printStackTrace();
             }
         }
-        //TODO: Validar cuales llevan PN
+
         if(!topic.startsWith("$CDINO"))
-        {
-            pushNotification(topic, msg);
-        }
-        
-        try
-        {
-            DataObject user=getUser();
-            RuleEngineProvider.invokeEvent(RuleEngineProvider.ONDEVICE_MESSAGE_EVENT, user, new DataObject().addParam("device", getId()), topic, msg);
-        }catch(Exception e)
-        {
-            e.printStackTrace();
+        {            
+            try
+            {
+                DataList<DataObject> events=getEvents(RuleEngineProvider.ONDEVICE_MESSAGE_EVENT);            
+                RuleEngineProvider.invokeEvent(events, getUser(), topic, msg);
+            }catch(Exception e)
+            {
+                e.printStackTrace();
+            }    
+            
+            WebSocketUserServer.sendData(getUser().getId(), new DataObject().addParam("type", "onDevMsg").addParam("device", getId()).addParam("topic", topic).addParam("msg", msg));
         }
         
     }  
@@ -379,4 +393,39 @@ public class Device
         if(con!=null)con.setUploading(false);
         return ret;
     }
+    
+    public DataList<DataObject> getEvents(String type)
+    {
+        DataList<DataObject> ret=events.get(type);
+        if(ret==null)
+        {
+            synchronized(events)
+            {
+                ret=events.get(type);
+                if(ret==null)
+                {
+                    try
+                    {
+                        ret=RuleEngineProvider.getInstance().getOnEvents(type, getUser(), getId());
+                        events.put(type, ret);
+                        //System.out.println("Load Events:"+type+"-->"+events);
+                    }catch(IOException e)
+                    {
+                        e.printStackTrace();
+                    }
+                }                
+            }
+        }        
+        return ret;
+    }
+    
+    public void resetEvents()
+    {
+        events.clear();
+    }
+
+    public String getInetAddress() {
+        return inetAddress;
+    }
+    
 }

@@ -6,6 +6,7 @@
 
 package io.cloudino.server;
 
+import io.cloudino.engine.DeviceBaseConn;
 import io.cloudino.engine.DeviceConn;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -21,13 +22,11 @@ public class DeviceServer extends Thread
 {
     static Logger log=Logger.getLogger("i.c.e.DeviceServer");
     
-    private int port = 9595;
+    private int port = 9494;
     private boolean running = false;
-    private ServerSocket sserv = null;
     
-    private ConcurrentLinkedDeque<DeviceConn> conns=new ConcurrentLinkedDeque();
+    private ConcurrentLinkedDeque<DeviceBaseConn> conns=new ConcurrentLinkedDeque();
     private Thread processor=null;
-    
     
     /** Creates a new instance of ChatServer */
     public DeviceServer()
@@ -49,23 +48,21 @@ public class DeviceServer extends Thread
     {
         try
         {
-            sserv = new ServerSocket(port);
-            
+            ServerSocket sserv = new ServerSocket(port);            
             while (running)
             {
                 //System.out.println("running");
                 Socket sock = sserv.accept();
-                sock.setTcpNoDelay(true);
+                sock.setTcpNoDelay(true);                
                 try
                 {
-                    DeviceConn conn = new DeviceConn(sock, this);
+                    DeviceBaseConn conn = new DeviceBaseConn(sock, this);
                     conns.add(conn);
                 } catch (Exception e)
                 {
                     e.printStackTrace();
                 }
-                System.out.println("accept:"+sock);
-                //this.sleep(1000);
+                //System.out.println("accept:"+sock);
             }
         } catch (Exception e)
         {
@@ -87,9 +84,9 @@ public class DeviceServer extends Thread
                     while (running)
                     {
                         boolean wait=true;
-                        Iterator<DeviceConn> it=conns.iterator();
+                        Iterator<DeviceBaseConn> it=conns.iterator();
                         while (it.hasNext()) {
-                            DeviceConn connection = it.next();
+                            DeviceBaseConn connection = it.next();
                             if(!connection.isClosed())
                             {
                                 boolean r=connection.loop();
@@ -98,7 +95,7 @@ public class DeviceServer extends Thread
                             {
                                 connection.close();
                                 it.remove();
-                                System.out.println("Remove Connection...");
+                                //System.out.println("Remove Connection...");
                             }
                         }
                         if(wait)Thread.sleep(20);
@@ -121,7 +118,7 @@ public class DeviceServer extends Thread
      */
     public static void main(String[] args)
     {
-        int port=9595;
+        int port=9494;
         if(args.length>0)
         {
             try
