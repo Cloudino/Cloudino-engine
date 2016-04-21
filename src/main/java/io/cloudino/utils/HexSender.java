@@ -222,10 +222,10 @@ public class HexSender
                 int index=0;
                 while(total>0)
                 {
-                    sout.write("Load memory address"+" "+current_page+":");
+                    sout.write("Loading addr:"+" "+current_page+":");
                     send(out,new byte[]{0x55,(byte)(current_page&0xFF),(byte)(current_page>>8),0x20}); //#STK_LOAD_ADDRESS, address, SYNC_CRC_EOP
                     if(!acknowledge(in,sout))return false;
-                    sout.write("Program memory address:");
+                    sout.write("Prgmming:");
                     if(total<0x80)
                     {
                         send(out,new byte[]{0x64,0x00,(byte)total,0x20}); //#STK_PROGRAM_PAGE, page size, flash memory

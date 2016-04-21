@@ -62,7 +62,7 @@ public class DeviceServer extends Thread
                 {
                     e.printStackTrace();
                 }
-                //System.out.println("accept:"+sock);
+                System.out.println("accept:"+sock);
             }
         } catch (Exception e)
         {
@@ -95,7 +95,7 @@ public class DeviceServer extends Thread
                             {
                                 connection.close();
                                 it.remove();
-                                //System.out.println("Remove Connection...");
+                                System.out.println("Remove Connection...");
                             }
                         }
                         if(wait)Thread.sleep(20);

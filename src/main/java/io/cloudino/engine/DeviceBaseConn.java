@@ -28,7 +28,7 @@ public class DeviceBaseConn extends DeviceConn
      */
     public DeviceBaseConn(Socket sock, DeviceServer server) throws IOException
     {
-        //System.out.println("Connection open");
+        System.out.println("Connection open");
         this.sock = sock;
         this.server = server;
         this.outputStream=sock.getOutputStream();
@@ -91,7 +91,7 @@ public class DeviceBaseConn extends DeviceConn
             }
         } catch (Exception e)
         {
-            //System.out.println("Clossing Connection...");
+            System.out.println("Clossing Connection...,"+e);
             close();            
         }     
         return ret;
