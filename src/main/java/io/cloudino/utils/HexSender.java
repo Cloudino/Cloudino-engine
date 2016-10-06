@@ -1,5 +1,6 @@
 package io.cloudino.utils;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -187,6 +188,71 @@ public class HexSender
             sout.write("failed\n"); 
             return false;
         }
+    }    
+    
+    public boolean programData(Data[] chunks, OutputStream out) throws IOException, InterruptedException
+    {
+        send(out,new byte[]{0x30,0x20});    // #STK_GET_SYNCH, SYNC_CRC_EOP
+        //if(!acknowledge(in,sout))return false;
+        out.write("[A]".getBytes());
+        send(out,new byte[]{0x50,0x20});    // #STK_ENTER_PROGMODE, SYNC_CRC_EOP
+        //if(!acknowledge(in,sout))return false;
+        out.write("[A]".getBytes());
+        send(out,new byte[]{0x75,0x20});    // #STK_READ_SIGN, SYNC_CRC_EOP
+/*        
+        if(wait_for(in,(byte)0x14, MAX_TIMEOUT))   //#STK_INSYNC
+        {
+            byte[] received=return_data(in,MAX_TIMEOUT, 3);
+            if(!wait_for(in,(byte)0x10, MAX_TIMEOUT))    //#STK_INSYNC
+            {
+                return false;
+            }
+        }else
+        {
+            return false;
+        }
+*/        
+        out.write("[A]".getBytes());
+        for(int x=0;x<chunks.length;x++)
+        {
+            Data chunk=chunks[x];
+            int total=chunk.bin.length;
+            //sout.writeln("Chunk Size:"+chunk.addr+" "+chunk.bin.length);
+            if(total>0)
+            {
+                int current_page=chunk.addr;
+                int index=0;
+                while(total>0)
+                {
+                    send(out,new byte[]{0x55,(byte)(current_page&0xFF),(byte)(current_page>>8),0x20}); //#STK_LOAD_ADDRESS, address, SYNC_CRC_EOP
+                    //if(!acknowledge(in,sout))return false;
+                    out.write("[A]".getBytes());
+                    if(total<0x80)
+                    {
+                        send(out,new byte[]{0x64,0x00,(byte)total,0x20}); //#STK_PROGRAM_PAGE, page size, flash memory
+                        send(out,chunk.bin,index,total);                  //data
+                        send(out,new byte[]{0x20});                      //SYNC_CRC_EOP                        
+                    }else
+                    {
+                        send(out,new byte[]{0x64,0x00,(byte)0x80,0x46}); //#STK_PROGRAM_PAGE, page size, flash memory
+                        send(out,chunk.bin,index,0x80);                  //data
+                        send(out,new byte[]{0x20});                      //SYNC_CRC_EOP
+                    }
+                    //if(!acknowledge(in,sout))return false;
+                    out.write("[A]".getBytes());
+                    current_page+= 0x40;
+                    total -= 0x80;
+                    index += 0x80;
+                }
+            }
+            
+        }
+        
+        send(out,new byte[]{0x51,0x20});            //#STK_LEAVE_PROGMODE, SYNC_CRC_EOP
+        //if(!acknowledge(in,sout))return false;
+        out.write("[A]".getBytes());               
+        out.flush();
+        return true;
     }    
     
     public boolean program(Data[] chunks, InputStream in, OutputStream out, Writer sout) throws IOException, InterruptedException

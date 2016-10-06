@@ -72,7 +72,14 @@ public class DeviceBaseConn extends DeviceConn
                         if(topic.equals("$ID"))
                         {
                             device=DeviceMgr.getInstance().getDeviceByAuthToken(msg);
-                            device.setConnection(this);
+                            if(device!=null)
+                            {
+                                device.setConnection(this);
+                            }else
+                            {
+                                System.out.println("Not AuthToken found:"+msg);
+                                close();
+                            }
                         }else
                         {
                             if(device!=null)
@@ -91,7 +98,8 @@ public class DeviceBaseConn extends DeviceConn
             }
         } catch (Exception e)
         {
-            System.out.println("Clossing Connection...,"+e);
+            System.out.println("Clossing Connection...");
+            e.printStackTrace();
             close();            
         }     
         return ret;

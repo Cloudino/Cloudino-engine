@@ -1,17 +1,22 @@
 //******* DataStores ***************
 
+
 eng.config={
     devicePort:9494,
-    arduinoPath:"/Applications/Cloudino.app/Contents/Java",
-    arduinoLib:"/Applications/Cloudino.app/Contents/Java",
+    //arduinoPath:"/opt/arduino-1.6.5",
+    //arduinoLib: "/opt/arduino-1.6.5/lib",
+    arduinoPath:"/Applications/Arduino.app/Contents/Java",
+    arduinoLib:"/Applications/Arduino.app/Contents/Java",
     usersWorkPath:"/cloudino/users",
+
     smtptransport: "smtps", //smtp, smtps
     ssltrust: "*",
     starttls: "true",
     smtpHost: "smtp.gmail.com",
     smtpPort:465,
-    smtpUser: "cloudinomail@gmail.com",
-    smtpPassword: "********",
+    smtpUser: "cloudinomail@gmail.com",    
+    smtpPassword: "************",
+    
     fromEmail: "cloudinomail@gmail.com",
     fromName: "Cloudino Admin",
     mail:{
@@ -22,7 +27,7 @@ eng.config={
         passwd:"password",
         port:465,
         ssl:true
-    }    
+    }      
 };
 
 //******* DataStores ***************

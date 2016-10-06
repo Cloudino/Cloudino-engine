@@ -183,6 +183,12 @@ public class Device
      */
     protected void receiveLog(String data)
     {
+        if(data.startsWith("[CCP]"))
+        {
+            receiveCompiler(data.substring(5));
+            return;
+        }
+        
         //System.out.println(id+"receive->Log:"+data);
         Iterator<DeviceObserver> it=observers.iterator();
         while (it.hasNext()) {

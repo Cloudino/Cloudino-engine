@@ -139,7 +139,11 @@ public class WebSocketUserServer
                 break;                    
         }
         DataObject resp=new DataObject();
-        resp.addSubObject("response").addParam("status", status).addParam("tid", tid);
+        DataObject response=resp.addSubObject("response").addParam("status", status);        
+        if(tid!=null)
+        {
+            response.addParam("tid", tid);
+        }
         sendData(resp);        
     }
     

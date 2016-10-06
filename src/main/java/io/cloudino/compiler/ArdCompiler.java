@@ -76,6 +76,8 @@ public class ArdCompiler
         //ArdDevice dev=getDevices().get(device);
         //System.out.println("dev:"+dev.board+"->"+dev.core+"->"+dev.cpu+"->"+dev.key+"->"+dev.mcu+"->"+dev.name+"->"+dev.sname+"->"+dev.variant);
         String txt="bash "+DataMgr.getApplicationPath()+"/WEB-INF/compile.sh "+apath+" "+alib+" arduino:avr:"+device+" "+build+" "+userPath+" "+path;
+        //String txt="\""+DataMgr.getApplicationPath()+"WEB-INF\\compile.bat\" \""+apath+"\" \""+alib+"\" arduino:avr:"+device+" \""+build+"\" \""+userPath+"\" \""+path+"\"";
+        System.out.println("exec:"+txt);
         Process p=Runtime.getRuntime().exec(txt);
         InputStream in=p.getInputStream();
         InputStream err=p.getErrorStream();
