@@ -141,6 +141,27 @@ public class Device
         if(this.con==null && observers.isEmpty())mgr.freeDevice(id);
     }
     
+/**
+     * Receive message from de device
+     * @param topic
+     * @param msg 
+     */
+    public void notifyFromRule(String topic,String msg)
+    {
+        //System.out.println(id+"receive->Topic:"+topic+" msg:"+msg);
+        Iterator<DeviceObserver> it=observers.iterator();
+        while (it.hasNext()) {
+            DeviceObserver observer = it.next();
+            try
+            {
+                observer.notifyFromRule(topic, msg);
+            }catch(Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
+    }
+    
     /**
      * Receive message from de device
      * @param topic

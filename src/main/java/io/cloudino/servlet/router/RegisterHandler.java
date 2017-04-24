@@ -1,7 +1,6 @@
 package io.cloudino.servlet.router;
 
 import com.github.mustachejava.Mustache;
-import io.cloudino.utils.MailSender;
 import io.cloudino.utils.TokenGenerator;
 import io.cloudino.utils.Utils;
 import java.io.IOException;
@@ -11,8 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.mail.Address;
-import javax.mail.internet.InternetAddress;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -57,13 +54,25 @@ public class RegisterHandler implements RouteHandler {
                             obj.put("registeredAt", ZonedDateTime.now().toString());
                             obj.put("confirmed", "false");
                             obj.put("emailSent", "false");
-                            Address userAddr = new InternetAddress(email, fullname, "utf-8");
+                            //Address userAddr = new InternetAddress(email, fullname, "utf-8");
                             DataObject dao = ds.addObj(obj); 
                             dao = dao.getDataObject("response").getDataObject("data");// System.out.println("dao:"+dao);
                             String content = MessageFormat.format(Utils.textInputStreamToString(
                                     LoginHandler.class.getResourceAsStream("/templates/confirmationMail.template"),"utf-8"),
                                     fullname, TokenGenerator.nextTokenByUserId(dao.getNumId()), email); 
-                            MailSender.send(userAddr, "Cloudino confirmation email", content, dao.getNumId());
+                            
+                            engine.getUtils().sendMail(email, fullname, "Cloudino confirmation email", content, "text/html", x->{
+                                try
+                                {
+                                    obj.put("emailSent", "true");
+                                    ds.updateObj(obj);                                
+                                }catch(IOException e)
+                                {
+                                    logger.log(Level.WARNING,"Error updating User Object",e);
+                                }
+                            });
+                            //MailSender.send(userAddr, "Cloudino confirmation email", content, dao.getNumId());
+                            
                             logger.log(Level.FINE, "Register and send mail to: {0}", email);
                             Map<String, Object> register = new HashMap<>();
                             Map<String, Object> scope = new HashMap<>();

@@ -6,9 +6,12 @@
 
 package io.cloudino.servlet;
 
+import io.cloudino.engine.Command;
+import io.cloudino.engine.CommandBuffer;
 import io.cloudino.engine.Device;
 import io.cloudino.engine.DeviceMgr;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.UUID;
@@ -130,6 +133,7 @@ public class WebSocketUserServer
                     {
                         if(device.post(topic, mssg))
                         {
+                            device.notifyFromRule(topic, mssg);
                             status=0;
                         }
                     }    
@@ -179,4 +183,36 @@ public class WebSocketUserServer
         return false;
     }
     
+    public static void sendRawData(String userid, String devid, String data)
+    {
+        ArrayList<WebSocketUserServer> arr=connections.get(userid);
+        if(arr!=null)
+        {
+            try
+            {
+                CommandBuffer buf=new CommandBuffer();
+                buf.write(data);
+                if(buf.hasCommand())
+                {
+                    Command cmd=buf.getCommand();
+                    if(cmd.type==0)
+                    {
+                        String topic=new String(cmd.topic,"utf8");
+                        String msg=new String(cmd.msg,"utf8");
+                        //System.out.println("Topic:"+topic+":"+msg);
+                        if(!topic.equals("$ID"))
+                        {                
+                            sendData(userid, new DataObject().addParam("type", "onDevMsg").addParam("device", devid).addParam("topic", topic).addParam("msg", msg));
+                        }
+                    }
+                }  
+            }catch(UnsupportedEncodingException e)
+            {
+                e.printStackTrace();
+            }
+        }
+    }
+    
+            
+
 }

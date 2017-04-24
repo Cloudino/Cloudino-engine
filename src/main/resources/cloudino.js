@@ -8,25 +8,23 @@ eng.config={
     arduinoPath:"/Applications/Arduino.app/Contents/Java",
     arduinoLib:"/Applications/Arduino.app/Contents/Java",
     usersWorkPath:"/cloudino/users",
-
-    smtptransport: "smtps", //smtp, smtps
-    ssltrust: "*",
-    starttls: "true",
-    smtpHost: "smtp.gmail.com",
-    smtpPort:465,
-    smtpUser: "cloudinomail@gmail.com",    
-    smtpPassword: "************",
     
-    fromEmail: "cloudinomail@gmail.com",
-    fromName: "Cloudino Admin",
+    sms:{
+        baseUrl:"https://rest.nexmo.com/sms/json?api_key=**********&api_secret=************&from=Cloudino",
+        toParam:"to",
+        textParam:"text"
+    },
+
     mail:{
-        from:"xxx@gmail.com",
-        fromName:"Name",
+        from:"cloudinomail@gmail.com",
+        fromName:"Cloudino Admin",
         host:"smtp.gmail.com",
         user:"email.gmail.com",
-        passwd:"password",
+        passwd:"************",
         port:465,
-        ssl:true
+        transport: "smtps", //smtp, smtps        
+        ssltrust: "*",
+        starttls: "true"
     }      
 };
 

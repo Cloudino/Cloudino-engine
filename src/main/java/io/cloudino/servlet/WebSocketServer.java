@@ -6,7 +6,9 @@
 
 package io.cloudino.servlet;
 
+import io.cloudino.engine.CommandBuffer;
 import io.cloudino.engine.Device;
+import io.cloudino.engine.DeviceConn;
 import io.cloudino.engine.DeviceMgr;
 import io.cloudino.engine.DeviceObserver;
 import java.io.IOException;
@@ -20,6 +22,7 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
+import org.semanticwb.datamanager.DataObject;
 
 /**
  *
@@ -68,7 +71,11 @@ public class WebSocketServer implements DeviceObserver
     @OnMessage
     public void incoming(String message) {
         //System.out.println("incoming:"+message);
-        if(device!=null)device.postRaw(message);
+        if(device!=null)
+        {
+            device.postRaw(message);
+            WebSocketUserServer.sendRawData(device.getUser().getId(),device.getId(),message);
+        }
     }
 
     @OnError
@@ -81,6 +88,12 @@ public class WebSocketServer implements DeviceObserver
     {
         session.getBasicRemote().sendText("msg:"+topic+"\t"+msg);
     }
+    
+    @Override
+    public void notifyFromRule(String topic, String msg) throws IOException
+    {
+        session.getBasicRemote().sendText("rmsg:"+topic+"\t"+msg);
+    }    
 
     @Override
     public void notifyLog(String data) throws IOException {

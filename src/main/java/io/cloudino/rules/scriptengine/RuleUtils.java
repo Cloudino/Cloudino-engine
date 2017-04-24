@@ -10,8 +10,16 @@ import com.notnoop.apns.APNS;
 import com.notnoop.apns.ApnsService;
 import io.cloudino.engine.Device;
 import io.cloudino.engine.DeviceMgr;
+import io.cloudino.servlet.WebSocketUserServer;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.semanticwb.datamanager.DataMgr;
 import org.semanticwb.datamanager.DataObject;
+import org.semanticwb.datamanager.SWBScriptEngine;
+import org.semanticwb.datamanager.script.ScriptObject;
 
 /**
  *
@@ -20,6 +28,20 @@ import org.semanticwb.datamanager.DataObject;
 public class RuleUtils 
 {        
     private static ApnsService apnsService=null;
+    
+    private static final ExecutorService proccessor = Executors.newSingleThreadExecutor();
+
+    static {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                proccessor.shutdown();
+                proccessor.awaitTermination(1, TimeUnit.MINUTES);
+            } catch (InterruptedException ie) {
+                ie.printStackTrace();
+            }
+        }));
+    }
+    
     
     static
     {
@@ -39,14 +61,16 @@ public class RuleUtils
         }
     }    
     
-    
     public static boolean sendMessage(String dev, String topic, String msg)
     {
         boolean ret=false;
         Device device=DeviceMgr.getInstance().getDeviceIfPresent(dev);
         if(device!=null)
         {
-            ret=device.post(topic, msg);
+            ret=device.post(topic, msg);            
+            WebSocketUserServer.sendData(device.getUser().getId(), new DataObject().addParam("type", "onDevMsg").addParam("device", device.getId()).addParam("topic", topic).addParam("msg", msg));
+            //Notify WebSockets Rule Message "rmsg"
+            device.notifyFromRule(topic, msg);
         }        
         return ret;
     }
@@ -76,5 +100,55 @@ public class RuleUtils
         }
         
         return ret;
-    }    
+    }   
+    
+    public static boolean emailNotification(DataObject _cdino_user, String subject, String msg)
+    {
+        try
+        {
+            //System.out.println("user:"+_cdino_user.getString("email")+","+subject+","+msg);
+            DataMgr.getUserScriptEngine("/cloudino.js", null).getUtils().sendMail(_cdino_user.getString("email"), subject, msg);
+            return true;
+        }catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        return false;
+    }       
+    
+    public static boolean smsNotification(DataObject _cdino_user, String number, String msg)
+    {
+        SWBScriptEngine engine=DataMgr.getUserScriptEngine("/cloudino.js", null);
+        
+        ScriptObject config = engine.getScriptObject().get("config");
+        if (config != null) {
+            ScriptObject sms = config.get("sms");
+            if (sms != null) {
+                String baseUrl = sms.getString("baseUrl");
+                String toParam = sms.getString("toParam");
+                String textParam = sms.getString("textParam");
+                
+                proccessor.submit(() -> 
+                {
+                    try
+                    {
+                        StringBuilder u=new StringBuilder(baseUrl);
+                        if(u.indexOf("?")>-1)u.append("&");
+                        else u.append("?");
+                        u.append(toParam).append("=").append(number);
+                        u.append("&").append(textParam).append("=").append(URLEncoder.encode(msg,"utf8"));     
+
+                        URL url=new URL(u.toString());
+                        Object obj=url.getContent();
+                        //System.out.println("sms ret:"+obj.getClass()+" "+obj);
+                    }catch(Exception e)
+                    {
+                        e.printStackTrace();
+                    }                    
+                });
+                return true;
+            }
+        }
+        return false;
+    }     
 }

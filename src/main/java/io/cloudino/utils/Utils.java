@@ -94,5 +94,11 @@ public class Utils {
         String jsonText = textInputStreamToString(is, "UTF-8");
         return (DataObject) DataObject.parseJSON(jsonText);
     }
+    
+    public static String nullValidate(String txt, String defValue)
+    {
+        if(txt==null)return defValue;
+        return txt;
+    }
 
 }

@@ -14,6 +14,7 @@ import java.io.IOException;
  */
 public interface DeviceObserver {
     public void notify(String topic, String msg) throws IOException;
+    public void notifyFromRule(String topic, String msg) throws IOException;
     public void notifyLog(String data) throws IOException;
     //public void notifyJSResponse(String data) throws IOException;
     public void notifyCompiler(String data) throws IOException;
