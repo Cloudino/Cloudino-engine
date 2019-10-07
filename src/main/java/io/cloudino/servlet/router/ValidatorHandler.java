@@ -49,6 +49,23 @@ public class ValidatorHandler implements RouteHandler {
                 }
                 break;
             }
+            case "existEmail": {
+                String email = request.getParameter("email");
+                if (email != null) {
+                    DataObject data = new DataObject();
+                    data.put("email", email);
+                    DataObject query = new DataObject();
+                    query.put("data", data);
+                    query = ds.fetch(query);
+                    DataList lista = query.getDataObject("response").getDataList("data");
+                    if (lista.size() == 0) {
+                        response.sendError(409, "email not exist");                        
+                    } else {
+                        response.getWriter().println("ok");
+                    }
+                }
+                break;
+            }
             default: {
                 response.sendError(405, "No Validator available for that message");
             }

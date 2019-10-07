@@ -73,6 +73,7 @@ public class DeviceMgr
      */
     public Device getDevice(String id)
     {
+        if(id==null)return null;
         Device dev=devices.get(id);
         if(dev==null)
         {
@@ -101,11 +102,11 @@ public class DeviceMgr
     }
     
     /**
-     * Regresa un Objeto Device, si esta presente regresa objeto en cache, de lo contrario crea un objeto temporal
+     * Regresa ID del Dispositivo
      * @param id
      * @return 
      */
-    public Device getDeviceByAuthToken(String token)
+    public String getDeviceIdByAuthToken(String token)
     {
         //System.out.println("token:"+token);
         String id=null;
@@ -134,6 +135,17 @@ public class DeviceMgr
         {
             e.printStackTrace();
         }
+        return id;
+    }      
+    
+    /**
+     * Regresa un Objeto Device, si esta presente regresa objeto en cache, de lo contrario crea un objeto temporal
+     * @param id
+     * @return 
+     */
+    public Device getDeviceByAuthToken(String token)
+    {
+        String id=getDeviceIdByAuthToken(token);
         if(id!=null)return getDevice(id);
         return null;
     }    

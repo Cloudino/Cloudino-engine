@@ -123,13 +123,14 @@ public class CloudinoFilter implements Filter {
 
     private RouteHandler getHandler(RouteData data) {
         ScriptObject path = data.getScriptObject();
-//        System.out.println("getHandler:" + path);
+        //System.out.println("getHandler:" + path);
         try {
 //            if ("true".equalsIgnoreCase(path.getString("isRestricted"))) {
 //                securedRoutes.add(path.getString("routePath"));
 //            }
-            if (null != path.getString("forwardTo")) {
-                final String jspRoute = path.getString("forwardTo");
+            if (null != path.getString("forward")) {
+                final String jspRoute = path.getString("forward");
+                //System.out.println("jspRoute:"+jspRoute);
                 RouteHandler rh = new RouteHandler() {
 
                     @Override
@@ -146,6 +147,25 @@ public class CloudinoFilter implements Filter {
                 data.setHandler(rh);
                 return rh;
             }
+            if (null != path.getString("include")) {
+                final String jspRoute = path.getString("include");
+                //System.out.println("jspRoute:"+jspRoute);
+                RouteHandler rh = new RouteHandler() {
+
+                    @Override
+                    public void config(Mustache mustache) {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+
+                    @Override
+                    public void handle(HttpServletRequest request, HttpServletResponse response, DataObject user) throws IOException, ServletException {
+                        request.getServletContext().getRequestDispatcher(jspRoute).include(request, response);
+                    }
+                };
+                //routes.put(path.getString("routePath"), rh);
+                data.setHandler(rh);
+                return rh;
+            }            
             if (null != path.getString("jspMapTo")) {
                 final String jspRoute = path.getString("jspMapTo");
                 RouteHandler rh = new RouteHandler() {

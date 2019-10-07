@@ -2,6 +2,7 @@ package io.cloudino.utils;
 
 import java.util.HashMap;
 import javax.servlet.http.HttpSession;
+import org.semanticwb.datamanager.utils.TokenGenerator;
 
 /**
  *

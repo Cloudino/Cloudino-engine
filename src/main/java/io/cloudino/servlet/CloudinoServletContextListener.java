@@ -30,6 +30,7 @@ public class CloudinoServletContextListener implements ServletContextListener {
         
         SWBScriptEngine engine=DataMgr.getUserScriptEngine("/cloudino.js",null);
         log.info("Cloudino SWBScriptEngine Started");
+        
         DeviceServer server = new DeviceServer();
         server.setPort(engine.getScriptObject().get("config").getInt("devicePort"));
         server.start();   

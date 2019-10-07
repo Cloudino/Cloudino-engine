@@ -1,12 +1,10 @@
 //******* DataStores ***************
-
-
 eng.config={
     devicePort:9494,
     //arduinoPath:"/opt/arduino-1.6.5",
     //arduinoLib: "/opt/arduino-1.6.5/lib",
-    arduinoPath:"/Applications/Arduino.app/Contents/Java",
-    arduinoLib:"/Applications/Arduino.app/Contents/Java",
+    arduinoPath:"/Applications/Cloudino.app/Contents/Java",
+    arduinoLib:"/Applications/Cloudino.app/Contents/Java",
     usersWorkPath:"/cloudino/users",
     
     sms:{
@@ -28,6 +26,7 @@ eng.config={
     }      
 };
 
+
 //******* DataStores ***************
 eng.dataStores["mongodb"]={
     host:"localhost",
@@ -42,8 +41,9 @@ eng.routes["cloudino"]={
     routeList:[
         { routePath: "login", routeHandler: "io.cloudino.servlet.router.LoginHandler", isRestricted: "false", template: "login" },
         { routePath: "register", routeHandler: "io.cloudino.servlet.router.RegisterHandler", isRestricted: "false", template: "register" },
+        { routePath: "passwordRecovery", routeHandler: "io.cloudino.servlet.router.PasswordRecoveryHandler", isRestricted: "false", template: "passwordRecovery" },
         //{ routePath: "panel", routeHandler: "io.cloudino.servlet.router.PanelHandler", isRestricted: "true", template: "panel" },
-        { routePath: "", forwardTo: "/index.jsp", isRestricted: "false"},
+        { routePath: "", forward: "/index.jsp", isRestricted: "false"},
         { routePath: "work", isRestricted: "true"},
         //{ routePath: "panel", forwardTo: "/work/panel/index.jsp", isRestricted: "true" },
         { routePath: "panel/*", jspMapTo: "/work/panel/", isRestricted: "true"},
@@ -77,27 +77,65 @@ eng.dataSources["Device"]={
         //{name:"username",title:"Usuario",type:"string"},
         {name:"description",title:"Description",type:"string"},
         {name:"type",title:"Type",type:"string"},
-        {name:"user",title:"User",type:"string"},
+        {name:"user",title:"User",type:"string"},                   //index
         {name:"sketcher",title:"Sketcher",type:"string"},
         {name:"jscode",title:"JSCode",type:"string"},
+        {name:"public",title:"Public",type:"boolean"},        
+        {name:"dataModel",title:"Data Model",type:"object", 
+            fields:[
+                {name:"topic",title:"Topic",type:"string"},
+                {name:"title",title:"Title",type:"string"},
+                {name:"type",title:"Type",type:"string"},
+                {name:"minValue",title:"Type",type:"number"},
+                {name:"maxValue",title:"Type",type:"number"},
+            ]
+        },        
     ],    
 };
 
-//******* DataSet ************
-eng.dataSources["DataSet"]={
-    scls: "DataSet",
+//******* DataStreamData ************
+eng.dataSources["DeviceData"]={
+    scls: "DeviceData",
     modelid: "Cloudino",
     dataStore: "mongodb",    
     fields:[
+        {name:"device",title:"Device",type:"string"},
+        {name:"timestamp",title:"TimeStamp",type:"date"},           //index -1
+        {name:"data",title:"Data",type:"object"},
+    ],      
+};
+
+//******* DataStream ************
+eng.dataSources["DataStream"]={
+    scls: "DataStream",
+    modelid: "Cloudino",
+    dataStore: "mongodb",    
+    fields:[
+        {name:"user",title:"User",type:"string"},                   //index
         {name:"name",title:"Name",type:"string"},
-        {name:"user",title:"User",type:"string"},
+        {name:"topic",title:"Topic",type:"string"},
+        {name:"active",title:"Active",type:"boolean"},        
         {name:"fields",title:"Fields",type:"object", 
             fields:[
                 {name:"name",title:"Name",type:"string"},
                 {name:"title",title:"Title",type:"string"},
                 {name:"type",title:"Type",type:"string"},
+                {name:"minValue",title:"Type",type:"number"},
+                {name:"maxValue",title:"Type",type:"number"},
             ]
         },
+    ],      
+};
+
+//******* DataStreamData ************
+eng.dataSources["DataStreamData"]={
+    scls: "DataStreamData",
+    modelid: "Cloudino",
+    dataStore: "mongodb",    
+    fields:[
+        {name:"dataStream",title:"DataStream",type:"string"},       //index
+        {name:"timestamp",title:"TimeStamp",type:"date"},           //index -1
+        {name:"values",title:"Fields",type:"object"},
     ],      
 };
 
@@ -108,8 +146,8 @@ eng.dataSources["Control"]={
     //{user:, device:, title, type:"MsgButton", data:{topic, msg}}
     fields:[
         {name:"name",title:"Name",type:"string"},
-        {name:"device",title:"Device",type:"string"},
-        {name:"user",title:"User",type:"string"},
+        {name:"device",title:"Device",type:"string"},               //index
+        {name:"user",title:"User",type:"string"},                   //index
         {name:"type",title:"Type",type:"string"},
         {name:"data",title:"Data",type:"object", 
             fields:[
@@ -128,7 +166,7 @@ eng.dataSources["UserContext"]={
     fields:[
         {name:"name",title:"Name",type:"string"},
         {name:"description",title:"Description",type:"string"},
-        {name:"user",title:"User",type:"string"},
+        {name:"user",title:"User",type:"string"},                   //index
         {name:"icon",title:"Icon",type:"string"},
     ],      
 };
@@ -141,7 +179,7 @@ eng.dataSources["DeviceGroup"]={
     fields:[
         {name:"name",title:"Name",type:"string"},
         {name:"description",title:"Description",type:"string"},
-        {name:"user",title:"User",type:"string"},
+        {name:"user",title:"User",type:"string"},                   //index
         {name:"icon",title:"Icon",type:"string"},
         {name:"devices", title:"Devices", stype:"select", multiple:true, dataSource:"Device"},
     ],      
@@ -155,7 +193,7 @@ eng.dataSources["CloudRule"]={
     fields:[
         {name:"name",title:"Name",type:"string"},
         {name:"description",title:"Description",type:"string"},
-        {name:"user",title:"User",type:"string"},
+        {name:"user",title:"User",type:"string"},                   //index
         {name:"script",title:"Script",type:"string"},
         {name:"xml",title:"XML",type:"string"},
         {name:"state",title:"State",type:"string"},
@@ -168,8 +206,8 @@ eng.dataSources["CloudRuleEvent"]={
     dataStore: "mongodb",    
     //{user:, device:, title, type:"MsgButton", data:{topic, msg}}
     fields:[
-        {name:"cloudRule",title:"CloudRule",type:"string"},
-        {name:"user",title:"User",type:"string"},
+        {name:"cloudRule",title:"CloudRule",type:"string"},         //index
+        {name:"user",title:"User",type:"string"},                   //index
         {name:"type",title:"Type",type:"string"},
         {name:"context",title:"Context",type:"string"},
         {name:"funct",title:"Function",type:"string"},
@@ -200,40 +238,20 @@ eng.fileSources["UserPhoto"]={
     dataStore: "mongodb", 
     maxSize: 100000,
     cachableSize: 5120,
-}
-
-/******* DataExtractors ************
-eng.dataExtractors["SWBSocial1"]={
-    dataSource:"SWBSocial",
-    class:"org.semanticwb.bigdata.engine.extractors.SWBSocialExtr",
-    timer: {time:10,unit:"s"},
-    url:"http://swbsocial.infotec.com.mx",
-    brand:"infotec",
-    stream:"conacyt",
 };
 
-eng.dataExtractors["SWBSocial2"]={
-    dataSource:"SWBSocial",
-    class:"org.semanticwb.bigdata.engine.extractors.SWBSocialExtr",
-    
-    url:"http://swbsocial.infotec.com.mx",
-    brand:"infotec",
-    stream:"Sep",
+eng.dataSources["DeviceLinks"]={
+    scls: "DeviceLinks",
+    modelid: "Cloudino",
+    dataStore: "mongodb",    
+    //{user:, device:, title, type:"MsgButton", data:{topic, msg}}
+    fields:[
+        {name:"name",title:"Name",type:"string"},
+        {name:"description",title:"Description",type:"string"},
+        {name:"user",title:"User",type:"string"},                       //index
+        {name:"type",title:"Type",type:"string"},
+        {name:"device", title:"Device", stype:"select", multiple:false, dataSource:"Device"},
+        {name:"active",title:"Active",type:"boolean"},
+        {name:"data",title:"Data",type:"object"},
+    ],      
 };
-*/
-
-/******* DataProcessors ************
-eng.dataProcessors["SWBSocialProcessor"]=
-{
-    dataSources: ["SWBSocial"],
-    actions:["add"],
-    request: function(request, dataSource, action)
-    {
-        if(request.data.precio)
-        {
-            request.data.precio=request.data.precio+1;
-        }
-        return request;
-    }            
-}
-*/

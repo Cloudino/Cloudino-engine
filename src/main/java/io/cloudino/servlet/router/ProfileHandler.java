@@ -79,9 +79,13 @@ public class ProfileHandler implements RouteHandler {
     private Map<String, Object> saveData(HttpServletRequest request, DataObject user) throws IOException {
         SWBScriptEngine engine = DataMgr.getUserScriptEngine("/cloudino.js", user);
         SWBDataSource ds = engine.getDataSource("User");
-        String name = request.getParameter("inputName");
-        if (null!=name){
-            user.put("fullname", name);
+        String fullname = request.getParameter("fullname");
+        String email = request.getParameter("email");
+        String password = request.getParameter("password");
+        if (null!=fullname && email!=null){
+            user.put("fullname", fullname);
+            user.put("email", email);
+            if(password!=null && password.trim().length()>0)user.put("password",password);
             ds.updateObj(user);
         }
         Map<String, Object> scope = new HashMap<>();

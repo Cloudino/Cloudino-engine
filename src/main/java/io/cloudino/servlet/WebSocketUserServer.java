@@ -139,6 +139,22 @@ public class WebSocketUserServer
                     }    
                 }
                 break;
+            case "post2Server":
+                {
+                    SWBScriptEngine engine = DataMgr.getUserScriptEngine("/cloudino.js", null);
+                    SWBDataSource ds = engine.getDataSource("Device");
+                    
+                    String dev = msg.getString("device");
+                    String topic = msg.getString("topic");
+                    String mssg = msg.getString("msg");
+                    
+                    Device device=DeviceMgr.getInstance().getDevice(dev);
+                    if(device!=null && device.getUser().getId().equals(user.getId()))
+                    {                        
+                        device.receive(topic, mssg);
+                    }    
+                }
+                break;                
             default: //post                
                 break;                    
         }

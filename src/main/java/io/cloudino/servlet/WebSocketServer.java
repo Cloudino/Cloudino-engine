@@ -6,6 +6,7 @@
 
 package io.cloudino.servlet;
 
+import io.cloudino.engine.Command;
 import io.cloudino.engine.CommandBuffer;
 import io.cloudino.engine.Device;
 import io.cloudino.engine.DeviceConn;
@@ -34,6 +35,7 @@ public class WebSocketServer implements DeviceObserver
     private static final String GUEST_PREFIX = "Guest";
     private static final AtomicInteger connectionIds = new AtomicInteger(0);
     private static final Set<WebSocketServer> connections =new CopyOnWriteArraySet<WebSocketServer>();
+    private static final CommandBuffer buffer=new CommandBuffer();    
     
     private Device device=null;
 
@@ -51,7 +53,7 @@ public class WebSocketServer implements DeviceObserver
         if(id!=null)
         {
             device=DeviceMgr.getInstance().getDevice(id);
-            if(device!=null)device.registerObserver(this);
+            if(device!=null)device.registerObserver("WebSocketServer",this);
         }
         //System.out.println("WebSockets Connection:"+id+" device:"+device);
         connections.add(this);
@@ -63,7 +65,7 @@ public class WebSocketServer implements DeviceObserver
         connections.remove(this);
         if(device!=null)
         {
-            device.removeObserver(this);
+            device.removeObserver("WebSocketServer");
         }
         //System.out.println("end:"+device);
     }
@@ -71,11 +73,30 @@ public class WebSocketServer implements DeviceObserver
     @OnMessage
     public void incoming(String message) {
         //System.out.println("incoming:"+message);
+        //"|M"+topic.length+"|"+topic+"S"+message.length+"|"+message;
         if(device!=null)
         {
             device.postRaw(message);
             WebSocketUserServer.sendRawData(device.getUser().getId(),device.getId(),message);
+            
+            try
+            {
+                buffer.write(message);
+                while(buffer.hasCommand())
+                {
+                    Command cmd=buffer.getCommand();
+                    if(cmd.type==Command.TYPE_MSG)
+                    {
+                        device.setDeviceData(new String(cmd.topic,"utf8"), new String(cmd.msg,"utf8"));
+                    }
+                }
+            }catch(Exception e)
+            {
+                e.printStackTrace();
+            }                
+            
         }
+        
     }
 
     @OnError

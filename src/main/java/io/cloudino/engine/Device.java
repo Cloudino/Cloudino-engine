@@ -6,21 +6,26 @@
 
 package io.cloudino.engine;
 
+import io.cloudino.datastreams.DataStreamMgr;
+import io.cloudino.links.DeviceLinkMgr;
 import io.cloudino.rules.scriptengine.RuleEngineProvider;
 import io.cloudino.servlet.WebSocketUserServer;
 import io.cloudino.utils.HexSender;
+import io.cloudino.utils.Utils;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
 import org.semanticwb.datamanager.DataList;
 import org.semanticwb.datamanager.DataMgr;
 import org.semanticwb.datamanager.DataObject;
+import org.semanticwb.datamanager.DataObjectIterator;
 import org.semanticwb.datamanager.SWBDataSource;
 import org.semanticwb.datamanager.SWBScriptEngine;
 
@@ -30,11 +35,12 @@ import org.semanticwb.datamanager.SWBScriptEngine;
  */
 public class Device 
 {
-    private final Set<DeviceObserver> observers =new CopyOnWriteArraySet<DeviceObserver>();
+    private final ConcurrentHashMap<String,DeviceObserver> observers =new ConcurrentHashMap();
     private DeviceMgr mgr=null;
     private String id;
     private DeviceConn con=null;
     private DataObject data=null;
+    private DataObject devData=null;
     private DataObject user=null;
     private String inetAddress;
     
@@ -142,14 +148,14 @@ public class Device
     }
     
 /**
-     * Receive message from de device
+     * Receive message from rule
      * @param topic
      * @param msg 
      */
     public void notifyFromRule(String topic,String msg)
     {
         //System.out.println(id+"receive->Topic:"+topic+" msg:"+msg);
-        Iterator<DeviceObserver> it=observers.iterator();
+        Iterator<DeviceObserver> it=observers.values().iterator();
         while (it.hasNext()) {
             DeviceObserver observer = it.next();
             try
@@ -167,10 +173,25 @@ public class Device
      * @param topic
      * @param msg 
      */
-    protected void receive(String topic,String msg)
+    public void receive(String topic,String msg)
     {
         //System.out.println(id+"receive->Topic:"+topic+" msg:"+msg);
-        Iterator<DeviceObserver> it=observers.iterator();
+        //Filter special tags
+        if(msg!=null)
+        {
+            if(msg.startsWith("{"))
+            {
+                msg.replace("$ISODATE", Utils.toISODate(new Date()));
+            }else
+            {
+                if(msg.equals("$ISODATE"))
+                {
+                    msg=Utils.toISODate(new Date());
+                }
+            }
+        }
+        
+        Iterator<DeviceObserver> it=observers.values().iterator();
         while (it.hasNext()) {
             DeviceObserver observer = it.next();
             try
@@ -196,13 +217,20 @@ public class Device
             WebSocketUserServer.sendData(getUser().getId(), new DataObject().addParam("type", "onDevMsg").addParam("device", getId()).addParam("topic", topic).addParam("msg", msg));
         }
         
+        //Notify DataStreams
+        DataStreamMgr.getInstance().onMessage(this, topic, msg);
+        
+        //Notify DeviceLinks
+        DeviceLinkMgr.getInstance().onMessage(this, topic, msg);
+        
+        setDeviceData(topic, msg);        
     }  
     
     /**
      * Receive Log data from de device
      * @param data 
      */
-    protected void receiveLog(String data)
+    public void receiveLog(String data)
     {
         if(data.startsWith("[CCP]"))
         {
@@ -211,7 +239,7 @@ public class Device
         }
         
         //System.out.println(id+"receive->Log:"+data);
-        Iterator<DeviceObserver> it=observers.iterator();
+        Iterator<DeviceObserver> it=observers.values().iterator();
         while (it.hasNext()) {
             DeviceObserver observer = it.next();
             try
@@ -244,10 +272,10 @@ public class Device
 //        }
 //    }      
     
-    protected void receiveCompiler(String data)
+    public void receiveCompiler(String data)
     {
         //System.out.println(id+"receive->Compiler:"+data);
-        Iterator<DeviceObserver> it=observers.iterator();
+        Iterator<DeviceObserver> it=observers.values().iterator();
         while (it.hasNext()) {
             DeviceObserver observer = it.next();
             try
@@ -268,6 +296,7 @@ public class Device
     public boolean postRaw(String msg)
     {
         //System.out.println("postRaw->"+msg);
+        //"|M"+topic.length+"|"+topic+"S"+message.length+"|"+message;
         try
         {
             if(con!=null)
@@ -298,6 +327,7 @@ public class Device
                 con.post(topic, msg);
                 return true;
             }
+            setDeviceData(topic, msg);
         }catch(Exception e)
         {
             e.printStackTrace();
@@ -327,17 +357,22 @@ public class Device
 //        return false;
 //    }    
     
-    public void registerObserver(DeviceObserver obs)
+    public void registerObserver(String key, DeviceObserver obs)
     {
         if(!observers.contains(obs))
         {
-            observers.add(obs);
+            observers.put(key, obs);
         }
     }
     
-    public void removeObserver(DeviceObserver obs)
+    public DeviceObserver getObserver(String key)
     {
-        observers.remove(obs);
+        return observers.get(key);
+    }    
+    
+    public void removeObserver(String key)
+    {
+        observers.remove(key);
         free();
     }
     
@@ -453,6 +488,226 @@ public class Device
 
     public String getInetAddress() {
         return inetAddress;
+    }
+    
+    private void setDeviceData(DataObject devData)
+    {    
+        this.devData=devData;
+    }
+    
+    /**
+     * Get DeviceData stored values  
+     * @return DataObject
+     */
+    public DataObject getDeviceData()
+    {
+        if(devData==null)
+        {
+            SWBScriptEngine engine=DataMgr.getUserScriptEngine("/cloudino.js",getUser());
+            SWBDataSource ds=engine.getDataSource("DeviceData"); 
+            try
+            {
+                DataObject query=new DataObject();
+                query.addSubObject("data").addParam("device", getId());
+                DataObjectIterator it=ds.find(query);
+                if(it.hasNext())devData=it.next();
+                else{
+                    devData=new DataObject();
+                    devData.addParam("device", getId());
+                    devData.addSubObject("data");
+                }
+            }catch(IOException e)
+            {
+                e.printStackTrace();
+            }
+        }
+        return devData;
+    }    
+    
+    /**
+     * Get Temporal device data
+     * @param topic
+     * @return 
+     */
+    public Object getDeviceData(String topic)
+    {
+        return _getDeviceData(getDeviceData().getDataObject("data"), topic);
+    }
+    
+    private Object _getDeviceData(DataObject data, String topic)
+    {
+        if(data==null)return null;
+        int i=topic.indexOf('.');
+        if(i>-1)
+        {
+            DataObject ret=data.getDataObject(topic.substring(0,i));
+            return _getDeviceData(ret, topic.substring(i+1));
+        }else return data.get(topic);
+    }    
+    
+    /**
+     * Post DeviceData do Device
+     */
+    public void synchDeviceData()
+    {
+        DataList dataModel=getData().getDataList("dataModel");  
+        if(dataModel!=null)
+        {
+            for(int x=0;x<dataModel.size();x++)
+            {
+                String topic=dataModel.getDataObject(x).getString("topic");
+                Object val=getDeviceData(topic);
+                if(val!=null)
+                {
+                    post(topic, val.toString());
+                }
+            }
+        }
+    }
+    
+    /**
+     * Set temporal device data
+     * @param topic
+     * @param val 
+     * @return boolean
+     */
+    public boolean setDeviceData(String topic, Object val)
+    {   
+        boolean add=true;
+        try
+        {
+            DataList dataModel=getData().getDataList("dataModel");
+            if(dataModel!=null)
+            {
+                DataObject field=dataModel.findDataObject("topic", topic);
+                if(field!=null)
+                {
+                    String type=field.getString("type");
+                    String minValue=field.getString("minValue");
+                    String maxValue=field.getString("maxValue");
+                    if("string".equals(type))
+                    {           
+                        String v=null;
+                        if(val instanceof byte[])
+                            v=new String((byte[])val);
+                        else v=val.toString();
+                        if(add)_setDeviceData(topic, v, false);
+                    }else if("boolean".equals(type))
+                    {           
+                        boolean v=Boolean.parseBoolean(val.toString());
+                        if(add)_setDeviceData(topic, v, false);
+                    }else if("object".equals(type))
+                    {
+                        String v=null;
+                        if(val instanceof byte[])
+                            v=new String((byte[])val);
+                        else v=val.toString();
+                        Object obj=DataObject.parseJSON(v);               
+                        if(add)_setDeviceData(topic, obj, false);
+                    }else if("binary".equals(type))
+                    {
+                        byte v[]=null;
+                        if(val instanceof byte[])
+                        {
+                            v=(byte[])val;
+                        }else if(val instanceof String)
+                        {
+                            v=((String)val).getBytes("utf8");
+                        }
+                        if(add)_setDeviceData(topic, (byte[])val, true);       
+                    }else if("int".equals(type))
+                    {
+                        int v=Integer.parseInt(val.toString());
+                        if(minValue!=null && v<Integer.parseInt(minValue))
+                        {
+                            add=false;
+                        }
+                        if(maxValue!=null && v>Integer.parseInt(maxValue))
+                        {
+                            add=false;
+                        }
+                        if(add)_setDeviceData(topic, v, false);
+                    }else if("double".equals(type))
+                    {                    
+                        double v=Double.parseDouble(val.toString());
+                        if(minValue!=null && v<Double.parseDouble(minValue))
+                        {
+                            add=false;
+                        }
+                        if(maxValue!=null && v>Double.parseDouble(maxValue))
+                        {
+                            add=false;
+                        }
+                        if(add)_setDeviceData(topic, v, false);
+                    }
+                }else
+                {
+                    add=false;
+                }
+            }else
+            {
+                add=false;
+            }
+        }catch(Exception e)
+        {
+            e.printStackTrace();
+            add=false;
+        }
+        return add;
+    }    
+    
+    /**
+     * Set temporal device data
+     * @param topic
+     * @param val
+     */
+    protected void _setDeviceData(String topic, Object val, boolean fileStore)
+    {
+        //System.out.println("setDeviceData:"+topic+" fileStore:"+fileStore);        
+        DataObject dd=getDeviceData();
+        dd.getDataObject("data").put(topic, val);
+        dd.addParam("timestamp", new Date());
+        
+        //store value to DB
+        try
+        {
+            SWBScriptEngine engine=DataMgr.getUserScriptEngine("/cloudino.js",getUser());
+            SWBDataSource ds=engine.getDataSource("DeviceData"); 
+            if(dd.getId()==null)
+            {
+                dd=ds.addObj(dd).getDataObject("response").getDataObject("data");
+                setDeviceData(dd);
+            }else
+            {
+                ds.updateObj(dd);
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        
+        
+        if(fileStore && val instanceof byte[])
+        {
+            byte data[]=(byte[])val;
+            try
+            {
+                String appPath = DataMgr.getApplicationPath();
+                String path=appPath+"/work/cloudino/devices/"+getId()+"/";
+                (new File(path)).mkdirs();
+
+                FileOutputStream fout=new FileOutputStream(new File(path,topic.replace(' ', '_')));
+                fout.write(data);
+                fout.close();
+
+                fout=new FileOutputStream(new File(path,topic.replace(' ', '_')+"_"+Utils.toISODate(new Date())));
+                fout.write(data);
+                fout.close();
+            }catch(Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
+        
     }
     
 }
